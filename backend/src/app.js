@@ -50,6 +50,16 @@ app.use(loggerMiddleware);
 // 5. Đăng ký các tuyến đường API chính thức dưới tiền tố /api/v1
 app.use('/api/v1', apiRouter);
 
+// Health check endpoint — dùng cho Docker HEALTHCHECK và monitoring
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
 // Tích hợp Swagger API Documentation
 const setupSwagger = require('./config/swagger');
 setupSwagger(app);
