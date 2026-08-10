@@ -8,6 +8,12 @@ const { validateBody } = require('../middleware/validation');
 router.post('/register', validateBody(['fullName', 'password']), authController.register);
 router.post('/login', authController.login);
 
+// Làm mới access token bằng refresh token
+router.post('/refresh-token', validateBody(['refreshToken']), authController.refreshToken);
+
+// Đăng xuất (yêu cầu đã đăng nhập)
+router.post('/logout', requireAuth, authController.logout);
+
 // Các API yêu cầu Token đăng nhập
 router.get('/me', requireAuth, authController.getProfile);
 
