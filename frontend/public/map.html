@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Bản Đồ Chỉ Đường Shipper</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <!-- Leaflet & Leaflet Routing Machine CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.css" />
+  
+  <style>
+    html, body, #map {
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      background: #f8f9fa;
+    }
+    
+    /* Ẩn bảng hướng dẫn rẽ chữ chi tiết để giữ bản đồ rộng rãi */
+    .leaflet-routing-container {
+      display: none !important;
+    }
+    
+    /* Custom style cho div icon */
+    .custom-div-icon {
+      background: transparent !important;
+      border: none !important;
+    }
+    
+    .icon-container {
+      box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .icon-container:hover {
+      transform: scale(1.1);
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  
+  <!-- Leaflet & Leaflet Routing Machine JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-routing-machine@3.2.12/dist/leaflet-routing-machine.js"></script>
+  
+  <script>
+    // 1. Phân tích các tham số tọa độ từ URL query params
+    const urlParams = new URLSearchParams(window.location.search);
+    const startLat = parseFloat(urlParams.get('startLat'));
+    const startLng = parseFloat(urlParams.get('startLng'));
+    const endLat = parseFloat(urlParams.get('endLat')) || 10.762622;
+    const endLng = parseFloat(urlParams.get('endLng')) || 106.660172;
+
+    // 2. Khởi tạo Leaflet Map, mặc định zoom vào điểm đích của khách hàng
+    const map = L.map('map', {
+      zoomControl: true
+    }).setView([endLat, endLng], 15);
+
+    // 3. Thêm bản đồ nền từ OpenStreetMap
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '© OpenStreetMap'
+    }).addTo(map);
+
+    // 4. Định nghĩa các Marker tùy biến (Custom SVG divIcons) không cần ảnh ngoài
+    const shipperIcon = L.divIcon({
+      html: `
+        <div class="icon-container" style="background-color: white; border: 2.5px solid #f97316; border-radius: 50%; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; box-sizing: border-box;">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#f97316" width="22" height="22">
+            <path d="M20 8h-3V4H3c-1.1 0-2 .9-2 2v11h2c0 1.66 1.34 3 3 3s3-1.34 3-3h6c0 1.66 1.34 3 3 3s3-1.34 3-3h2v-5l-3-4zM6 18.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm12 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zm2-5.5h-3V9h3v4z"/>
+          </svg>
+        </div>
+      `,
+      className: 'custom-div-icon',
+      iconSize: [38, 38],
+      iconAnchor: [19, 19],
+      popupAnchor: [0, -19]
+    });
+
+    const destIcon = L.divIcon({
+      html: `
+        <div class="icon-container" style="background-color: white; border: 2.5px solid #ef4444; border-radius: 50%; width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; box-sizing: border-box;">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#ef4444" width="22" height="22">
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+          </svg>
+        </div>
+      `,
+      className: 'custom-div-icon',
+      iconSize: [38, 38],
+      iconAnchor: [19, 19],
+      popupAnchor: [0, -19]
+    });
+
+    let routingControl = null;
+    let fallbackDestMarker = null;
+
+    // Hiển thị marker đích mặc định phòng trường hợp chưa có shipper
+    fallbackDestMarker = L.marker([endLat, endLng], { icon: destIcon }).addTo(map).bindPopup('<b>Vị trí giao hàng</b>');
+
+    // Hàm cập nhật hoặc vẽ mới đường đi từ vị trí shipper tới đơn hàng
+    function updateRoute(sLat, sLng) {
+      if (isNaN(sLat) || isNaN(sLng) || sLat === 0 || sLng === 0) {
+        return; // Tọa độ không hợp lệ
+      }
+
+      // Xóa marker đơn lẻ cũ nếu đã vẽ đường đi để tránh trùng lặp
+      if (fallbackDestMarker) {
+        map.removeLayer(fallbackDestMarker);
+        fallbackDestMarker = null;
+      }
+
+      // Nếu đã có control cũ, cập nhật tọa độ thay vì khởi tạo lại toàn bộ để tăng hiệu năng
+      if (routingControl) {
+        routingControl.setWaypoints([
+          L.latLng(sLat, sLng),
+          L.latLng(endLat, endLng)
+        ]);
+      } else {
+        // Tạo Leaflet Routing Machine control mới
+        routingControl = L.Routing.control({
+          waypoints: [
+            L.latLng(sLat, sLng),
+            L.latLng(endLat, endLng)
+          ],
+          router: L.Routing.osrmv1({
+            serviceUrl: 'https://router.project-osrm.org/route/v1',
+            profile: 'driving' // định tuyến xe cơ giới
+          }),
+          lineOptions: {
+            styles: [{ color: '#f97316', weight: 6, opacity: 0.85 }] // Vẽ đường đi màu cam đậm chất thương hiệu
+          },
+          createMarker: function(i, waypoint, n) {
+            // Điểm xuất phát (0) là Shipper, Điểm đích (1) là Khách hàng
+            if (i === 0) {
+              return L.marker(waypoint.latLng, {
+                icon: shipperIcon,
+                draggable: false
+              }).bindPopup('<b>Vị trí Shipper</b>');
+            } else {
+              return L.marker(waypoint.latLng, {
+                icon: destIcon,
+                draggable: false
+              }).bindPopup('<b>Vị trí giao hàng</b>');
+            }
+          },
+          addWaypoints: false,
+          draggableWaypoints: false,
+          fitSelectedRoutes: true, // Tự động căn chỉnh màn hình hiển thị toàn bộ quãng đường
+          show: false
+        }).addTo(map);
+      }
+    }
+
+    // Vẽ lần đầu nếu đã truyền đủ tọa độ shipper từ ban đầu
+    if (!isNaN(startLat) && !isNaN(startLng) && startLat !== 0 && startLng !== 0) {
+      updateRoute(startLat, startLng);
+    }
+
+    // Lắng nghe sự kiện từ cửa sổ React cha để cập nhật vị trí thời gian thực qua postMessage
+    window.addEventListener('message', function(event) {
+      if (event.data && event.data.type === 'updateShipperLocation') {
+        const lat = parseFloat(event.data.lat);
+        const lng = parseFloat(event.data.lng);
+        if (!isNaN(lat) && !isNaN(lng)) {
+          updateRoute(lat, lng);
+        }
+      }
+    });
+  </script>
+</body>
+</html>

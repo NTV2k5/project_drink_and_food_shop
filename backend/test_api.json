@@ -1,0 +1,414 @@
+{
+  "info": {
+    "_postman_id": "8b5f3a02-cf32-4d2c-88c9-9436e2f18370",
+    "name": "F&B Shop - NodeJS-ExpressJS API Tests",
+    "description": "Bộ sưu tập kiểm thử API cho đề tài RESTful API NodeJS/ExpressJS/MongoDB với tính năng định vị bên ngoài qua OpenStreetMap Nominatim.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "Đăng ký Khách hàng",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Nguyễn Văn B\",\n  \"email\": \"vanb@gmail.com\",\n  \"phone\": \"0966778899\",\n  \"password\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{api_url}}/auth/register",
+              "host": [
+                "{{api_url}}"
+              ],
+              "path": [
+                "auth",
+                "register"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Đăng nhập Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.accessToken) {",
+                  "    pm.environment.set(\"admin_token\", jsonData.accessToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+            ]
+          ,
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@fb.com\",\n  \"password\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{api_url}}/auth/login",
+              "host": [
+                "{{api_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Đăng nhập Khách hàng",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.accessToken) {",
+                  "    pm.environment.set(\"customer_token\", jsonData.accessToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"customer@fb.com\",\n  \"password\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{api_url}}/auth/login",
+              "host": [
+                "{{api_url}}"
+              ],
+              "path": [
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Lấy thông tin cá nhân",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customer_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{api_url}}/auth/me",
+              "host": [
+                "{{api_url}}"
+              ],
+              "path": [
+                "auth",
+                "me"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Categories",
+      "item": [
+        {
+          "name": "Xem danh sách danh mục",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{api_url}}/categories",
+              "host": [
+                "{{api_url}}"
+              ],
+              "path": [
+                "categories"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Xem chi tiết danh mục theo Slug",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{api_url}}/categories/slug/tra-sua",
+              "host": [
+                "{{api_url}}"
+              ],
+              "path": [
+                "categories",
+                "slug",
+                "tra-sua"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Products",
+      "item": [
+        {
+          "name": "Xem danh sách món ăn & Lọc",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{api_url}}/products?limit=10&page=1&search=trà sữa",
+              "host": [
+                "{{api_url}}"
+              ],
+              "path": [
+                "products"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "search",
+                  "value": "trà sữa"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Xem món bán chạy",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{api_url}}/products/bestsellers?limit=5",
+              "host": [
+                "{{api_url}}"
+              ],
+              "path": [
+                "products",
+                "bestsellers"
+              ],
+              "query": [
+                {
+                  "key": "limit",
+                  "value": "5"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Locations (Tích hợp Định vị)",
+      "item": [
+        {
+          "name": "Thêm địa điểm mới (Tự động Định vị)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{admin_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"F&B Shop - Chi nhánh RMIT\",\n  \"address\": \"700 Nguyễn Văn Linh, Tân Phong, Quận 7, Hồ Chí Minh\",\n  \"description\": \"Chi nhánh đối diện Đại học RMIT Nam Sài Gòn.\",\n  \"phone\": \"02899887766\"\n}"
+            },
+            "url": {
+              "raw": "{{api_url}}/locations",
+              "host": [
+                "{{api_url}}"
+              ],
+              "path": [
+                "locations"
+              ]
+            },
+            "description": "Khi gửi request này mà không truyền vĩ độ (latitude) và kinh độ (longitude), server NodeJS sẽ tự động gọi OpenStreetMap Nominatim API để chuyển hóa địa chỉ này thành tọa độ thực tế."
+          },
+          "response": []
+        },
+        {
+          "name": "Xem danh sách địa điểm cửa hàng",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{api_url}}/locations",
+              "host": [
+                "{{api_url}}"
+              ],
+              "path": [
+                "locations"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5. Shopping Cart",
+      "item": [
+        {
+          "name": "Lấy giỏ hàng hiện tại",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customer_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{api_url}}/cart",
+              "host": [
+                "{{api_url}}"
+              ],
+              "path": [
+                "cart"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "6. Order Checkout",
+      "item": [
+        {
+          "name": "Tạo đơn hàng (Kiểu thanh toán SePay)",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{customer_token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paymentMethod\": \"SEPAY\",\n  \"shippingFee\": 15000,\n  \"deliveryAddress\": {\n    \"label\": \"Trường học\",\n    \"fullAddress\": \"700 Nguyễn Văn Linh, Q.7, TP.HCM\",\n    \"lat\": 10.7626,\n    \"lng\": 106.6601\n  },\n  \"items\": [\n    {\n      \"productId\": \"648fcf7a5c898b6a12df930c\",\n      \"quantity\": 2,\n      \"selectedOptions\": [\n        {\n          \"groupId\": \"size-id\",\n          \"optionId\": \"size-l-id\"\n        }\n      ],\n      \"note\": \"Ít đá\"\n    }\n  ],\n  \"note\": \"Gọi khi đến cổng\"\n}"
+            },
+            "url": {
+              "raw": "{{api_url}}/orders",
+              "host": [
+                "{{api_url}}"
+              ],
+              "path": [
+                "orders"
+              ]
+            },
+            "description": "Lưu ý: productId trong phần body cần được thay thế bằng một ID thật có sẵn từ API danh sách sản phẩm."
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "api_url",
+      "value": "http://localhost:4000/api/v1",
+      "type": "string"
+    }
+  ]
+}
