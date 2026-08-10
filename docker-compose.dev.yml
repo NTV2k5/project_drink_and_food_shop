@@ -1,0 +1,32 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Docker Compose Override — Development Environment
+# Sử dụng: docker-compose -f docker-compose.yml -f docker-compose.dev.yml up
+# ─────────────────────────────────────────────────────────────────────────────
+
+services:
+  backend:
+    build:
+      target: development
+    environment:
+      - NODE_ENV=development
+    volumes:
+      # Hot-reload: mount source code vào container
+      - ./backend/src:/app/src:ro
+    command: ["npm", "run", "dev"]
+
+  frontend:
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://localhost:4000/api/v1
+    volumes:
+      # Hot-reload cho Next.js
+      - ./frontend/src:/app/src:ro
+    command: ["npm", "run", "dev"]
+
+  mongodb:
+    ports:
+      - "27017:27017"
+
+  redis:
+    ports:
+      - "6379:6379"
