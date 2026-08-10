@@ -149,9 +149,60 @@ const updateUserRole = async (req, res, next) => {
   }
 };
 
+// Làm mới Access Token bằng Refresh Token
+const refreshToken = async (req, res, next) => {
+  try {
+    const { refreshToken: token } = req.body;
+    if (!token) {
+      throw new ApiError(401, 'Refresh token không được cung cấp.');
+    }
+
+    // Xác minh refresh token
+    let decoded;
+    try {
+      decoded = jwt.verify(
+        token,
+        process.env.JWT_REFRESH_SECRET || 'change-me-in-production-refresh'
+      );
+    } catch {
+      throw new ApiError(401, 'Refresh token không hợp lệ hoặc đã hết hạn.');
+    }
+
+    // Kiểm tra user vẫn tồn tại và active
+    const user = await User.findById(decoded.id || decoded.userId);
+    if (!user || !user.isActive) {
+      throw new ApiError(401, 'Tài khoản không tồn tại hoặc đã bị khóa.');
+    }
+
+    // Tạo access token mới
+    const newAccessToken = jwt.sign(
+      { id: user.id, sub: user.id },
+      process.env.JWT_ACCESS_SECRET || 'change-me-in-production-access',
+      { expiresIn: process.env.JWT_ACCESS_EXPIRES || '15m' }
+    );
+
+    res.status(200).json({ accessToken: newAccessToken });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Đăng xuất (client-side token invalidation)
+const logout = async (req, res, next) => {
+  try {
+    // Với JWT stateless, logout được xử lý phía client bằng cách xóa token.
+    // Để blacklist token phía server, cần Redis (có thể implement sau).
+    res.status(200).json({ message: 'Đăng xuất thành công. Vui lòng xóa token khỏi client.' });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   register,
   login,
+  refreshToken,
+  logout,
   getProfile,
   getAllUsers,
   updateUserRole
