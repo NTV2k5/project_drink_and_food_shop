@@ -4,7 +4,7 @@ const cartController = require('../controllers/cart.controller');
 const { requireAuth } = require('../middleware/auth');
 const { validateBody } = require('../middleware/validation');
 
-// Tất cả các tuyến đường giỏ hàng đều yêu cầu đăng nhập
+// Tất cả các route giỏ hàng đều yêu cầu đăng nhập
 router.use(requireAuth);
 
 router.get('/', cartController.getCart);

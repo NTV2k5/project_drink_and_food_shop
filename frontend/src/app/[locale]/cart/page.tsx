@@ -1,6 +1,7 @@
 'use client';
 
 import { useCartStore } from '@/store/cart-store';
+import { useAuthStore } from '@/store/auth-store';
 import { formatPrice } from '@/lib/utils';
 import Image from 'next/image';
 import { Minus, Plus, Trash2, ArrowRight, ShoppingBag, Loader2 } from 'lucide-react';
@@ -9,14 +10,23 @@ import { Link } from '@/i18n/routing';
 import { useState, useEffect } from 'react';
 
 export default function CartPage() {
-  const { items, removeItem, updateItem, subtotal, clearCart } = useCartStore();
+  const { items, syncRemoveItem, syncUpdateItem, syncClearCart, fetchCart, subtotal, isLoading } = useCartStore();
+  const { user, accessToken } = useAuthStore();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  if (!mounted) {
+  // Khi đã mount và user đăng nhập: tải giỏ hàng từ MongoDB
+  useEffect(() => {
+    if (mounted && user && accessToken) {
+      fetchCart(accessToken);
+    }
+  }, [mounted, user, accessToken]);
+
+  // Hiển thị spinner khi: (1) chưa hydrate DOM hoặc (2) đang tải giỏ từ MongoDB
+  if (!mounted || isLoading) {
     return (
       <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-zinc-50">
         <Loader2 className="h-8 w-8 animate-spin text-orange-500" />
@@ -60,7 +70,7 @@ export default function CartPage() {
             </p>
           </div>
           <button
-            onClick={clearCart}
+            onClick={() => syncClearCart(accessToken)}
             className="text-sm font-semibold text-zinc-400 hover:text-red-500 transition cursor-pointer"
           >
             Xóa tất cả
@@ -112,7 +122,7 @@ export default function CartPage() {
                         )}
                       </div>
                       <button
-                        onClick={() => removeItem(item.id)}
+                        onClick={() => syncRemoveItem(item.id, accessToken)}
                         className="text-zinc-400 hover:text-red-500 transition cursor-pointer"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -123,9 +133,7 @@ export default function CartPage() {
                       <div className="flex items-center gap-3 bg-zinc-100/80 p-0.5 rounded-full border border-zinc-200">
                         <button
                           onClick={() =>
-                            updateItem(item.id, {
-                              quantity: Math.max(1, item.quantity - 1),
-                            })
+                            syncUpdateItem(item.id, Math.max(1, item.quantity - 1), accessToken)
                           }
                           className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-zinc-600 shadow-sm hover:bg-zinc-50 cursor-pointer"
                         >
@@ -136,7 +144,7 @@ export default function CartPage() {
                         </span>
                         <button
                           onClick={() =>
-                            updateItem(item.id, { quantity: item.quantity + 1 })
+                            syncUpdateItem(item.id, item.quantity + 1, accessToken)
                           }
                           className="flex h-7 w-7 items-center justify-center rounded-full bg-white text-zinc-600 shadow-sm hover:bg-zinc-50 cursor-pointer"
                         >

@@ -25,7 +25,7 @@ type CheckoutFormData = z.infer<typeof checkoutSchema>;
 
 export default function CheckoutPage() {
   const router = useRouter();
-  const { items, subtotal, clearCart } = useCartStore();
+  const { items, subtotal, syncClearCart } = useCartStore();
   const { user, accessToken, logout } = useAuthStore();
 
   const [couponCode, setCouponCode] = useState('');
@@ -200,7 +200,8 @@ export default function CheckoutPage() {
 
       // Order created successfully
       const { order } = result;
-      clearCart();
+      // Xóa giỏ hàng cả local lẫn MongoDB sau khi đặt hàng thành công
+      await syncClearCart(accessToken);
       router.push(`/orders/${order.id}`);
     } catch (err: any) {
       setError(err.message || 'Có lỗi xảy ra khi tạo đơn hàng');

@@ -7,6 +7,7 @@ import { formatPrice } from "@/lib/utils";
 import type { Product } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { useCartStore } from "@/store/cart-store";
+import { useAuthStore } from "@/store/auth-store";
 
 interface ProductCardProps {
   product: Product;
@@ -17,20 +18,24 @@ export function ProductCard({ product }: ProductCardProps) {
     typeof product.basePrice === "string"
       ? parseFloat(product.basePrice)
       : product.basePrice;
-  
-  const addItem = useCartStore(state => state.addItem);
+
+  const syncAddItem = useCartStore((state) => state.syncAddItem);
+  const accessToken = useAuthStore((state) => state.accessToken);
 
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.preventDefault();
-    addItem({
-      id: `${product.id}-${Date.now()}`,
-      productId: product.id,
-      productName: product.name,
-      productImage: product.image,
-      basePrice: price,
-      quantity: 1,
-      selectedOptions: [],
-    });
+    // Nếu đã đăng nhập → đồng bộ lên MongoDB, ngược lại → lưu local (guest)
+    syncAddItem(
+      {
+        productId: product.id,
+        productName: product.name,
+        productImage: product.image,
+        basePrice: price,
+        quantity: 1,
+        selectedOptions: [],
+      },
+      accessToken
+    );
   };
 
   return (

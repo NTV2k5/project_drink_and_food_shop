@@ -45,7 +45,7 @@ io.on('connection', (socket) => {
   socket.on('joinOrderRoom', (orderId) => {
     if (orderId) {
       socket.join(`order_${orderId}`);
-      console.log(`🔌 Socket ${socket.id} đã tham gia vào phòng: order_${orderId}`);
+      console.log(`Socket ${socket.id} đã tham gia vào phòng: order_${orderId}`);
     }
   });
 
@@ -63,12 +63,12 @@ io.on('connection', (socket) => {
 
   // Sự kiện ngắt kết nối
   socket.on('disconnect', () => {
-    console.log(`🔌 Thiết bị ngắt kết nối: Socket ID = ${socket.id}`);
+    console.log(`Thiết bị ngắt kết nối: Socket ID = ${socket.id}`);
   });
 });
 
 // 6. Lắng nghe yêu cầu kết nối
 server.listen(PORT, () => {
-  console.log(`🚀 API chạy tại: http://localhost:${PORT}/api/v1`);
-  console.log(`🔌 Cổng thời gian thực WebSocket: ws://localhost:${PORT}`);
+  console.log(`API chạy tại: http://localhost:${PORT}/api/v1`);
+  console.log(`Cổng thời gian thực WebSocket: ws://localhost:${PORT}`);
 });

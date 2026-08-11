@@ -37,7 +37,7 @@ Các thư viện chính được cài đặt bao gồm:
 - `nodemon` (devDependencies): Tự động khởi động lại server khi mã nguồn thay đổi.
 
 ### Bước 2: Cấu hình biến môi trường
-Kiểm tra file `.env` nằm ở thư mục `backend`. Bạn có thể thay đổi đường dẫn kết nối tới MongoDB nếu cần:
+Kiểm tra file `.env` nằm ở thư mục `backend`. Có thể thay đổi đường dẫn kết nối tới MongoDB nếu cần:
 
 ```env
 MONGODB_URI="mongodb://localhost:27017/drink_and_food_shop"
@@ -49,7 +49,7 @@ JWT_ACCESS_EXPIRES="15m"
 JWT_REFRESH_EXPIRES="7d"
 ```
 
-*Mẹo: Nếu bạn muốn dùng MongoDB Atlas (online), hãy đổi `MONGODB_URI` thành đường dẫn kết nối của cụm cơ sở dữ liệu Atlas của bạn.*
+*Mẹo: Nếu muốn dùng MongoDB Atlas (online), hãy đổi `MONGODB_URI` thành đường dẫn kết nối của cụm cơ sở dữ liệu Atlas của bạn.*
 
 ### Bước 3: Nạp dữ liệu mẫu (Seed Data)
 Đề bài yêu cầu có tối thiểu 5 bản ghi mẫu. Hệ thống đã chuẩn bị sẵn một script tự động dọn dẹp cơ sở dữ liệu và chèn dữ liệu mẫu bao gồm: 5 người dùng (đầy đủ các quyền Admin/Customer/Shipper), 5 danh mục món ăn, 10 món ăn thực đơn kèm tùy chọn, 5 địa điểm cửa hàng mẫu kèm tọa độ địa lý, đơn hàng mẫu và đánh giá mẫu.
@@ -60,7 +60,7 @@ Hãy khởi chạy lệnh sau trong thư mục `backend`:
 npm run seed
 ```
 
-*Khi màn hình console báo `🎉 Quá trình nạp dữ liệu mẫu HOÀN TẤT thành công!`, bạn đã hoàn thành việc tạo cơ sở dữ liệu ban đầu.*
+*Khi màn hình console báo `🎉 Quá trình nạp dữ liệu mẫu HOÀN TẤT thành công!`, đã hoàn thành việc tạo cơ sở dữ liệu ban đầu.*
 
 ### Bước 4: Khởi động Server RESTful API
 Khởi chạy dự án ở chế độ phát triển (Development Mode) để theo dõi nhật ký log request:
@@ -88,4 +88,4 @@ Server sẽ khởi động và thông báo:
 5. Tiến hành gửi các request và chụp ảnh kết quả JSON phản hồi từ server để đưa vào tiểu luận.
 
 > **Đặc biệt lưu ý chức năng Định vị (Geocoding API):**
-> Gửi request `POST /locations` (Thêm địa điểm mới) với địa chỉ đầy đủ mà không truyền vĩ độ/kinh độ. Hệ thống sẽ tự động gọi OpenStreetMap Nominatim API bên ngoài và trả về tọa độ `lat` và `lng` chính xác của địa chỉ đó! Bạn có thể xem log ở màn hình console của server để thấy tiến trình này hoạt động thời gian thực.
+> Gửi request `POST /locations` (Thêm địa điểm mới) với địa chỉ đầy đủ mà không truyền vĩ độ/kinh độ. Hệ thống sẽ tự động gọi OpenStreetMap Nominatim API bên ngoài và trả về tọa độ `lat` và `lng` chính xác của địa chỉ đó! Có thể xem log ở màn hình console của server để thấy tiến trình này hoạt động thời gian thực.

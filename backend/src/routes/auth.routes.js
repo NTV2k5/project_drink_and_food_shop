@@ -4,7 +4,7 @@ const authController = require('../controllers/auth.controller');
 const { requireAuth, restrictTo } = require('../middleware/auth');
 const { validateBody } = require('../middleware/validation');
 
-// Định nghĩa các tuyến đường cho xác thực người dùng
+// Định nghĩa các route cho xác thực người dùng
 router.post('/register', validateBody(['fullName', 'password']), authController.register);
 router.post('/login', authController.login);
 

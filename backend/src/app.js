@@ -43,11 +43,11 @@ app.use(helmet());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// 4. Ghi nhận nhật ký request (Morgan + Custom Logger Middleware - Chương 4)
+// 4. Ghi nhận nhật ký request (Morgan + Custom Logger Middleware)
 app.use(morgan('dev'));
 app.use(loggerMiddleware);
 
-// 5. Đăng ký các tuyến đường API chính thức dưới tiền tố /api/v1
+// 5. Đăng ký các route API chính thức với tiền tố /api/v1
 app.use('/api/v1', apiRouter);
 
 // Health check endpoint — dùng cho Docker HEALTHCHECK và monitoring
@@ -72,7 +72,7 @@ app.use((req, res, next) => {
   });
 });
 
-// 7. Đăng ký Middleware xử lý lỗi tập trung cuối cùng (Chương 4)
+// 7. Đăng ký Middleware xử lý lỗi tập trung cuối cùng
 app.use(errorHandler);
 
 module.exports = app;

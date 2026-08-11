@@ -189,11 +189,19 @@ export function Header() {
               </div>
             </div>
           ) : (
-            <Link href="/sign-in" className="flex items-center">
-              <Button variant="ghost" size="icon" title={tc('login')} className="hover:text-orange-500 hover:bg-orange-50 rounded-full">
-                <User className="h-5 w-5" />
-              </Button>
-            </Link>
+            <div className="flex items-center gap-1.5">
+              <Link href="/sign-in">
+                <Button variant="ghost" size="sm" className="text-xs font-semibold text-zinc-700 hover:text-orange-600 hover:bg-orange-50 rounded-xl">
+                  <User className="h-4 w-4 mr-1 sm:mr-1.5 text-zinc-500" />
+                  <span>{tc('login')}</span>
+                </Button>
+              </Link>
+              <Link href="/sign-up" className="hidden sm:inline-block">
+                <Button variant="outline" size="sm" className="text-xs font-bold border-orange-200 text-orange-600 hover:bg-orange-50 rounded-xl">
+                  <span>{tc('register')}</span>
+                </Button>
+              </Link>
+            </div>
           )}
 
           <Button

@@ -273,7 +273,7 @@ const swaggerDocument = {
 
 const setupSwagger = (app) => {
   app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
-  console.log('📝 Swagger API docs available at: http://localhost:4000/api-docs');
+  console.log('Swagger API docs available at: http://localhost:4000/api-docs');
 };
 
 module.exports = setupSwagger;

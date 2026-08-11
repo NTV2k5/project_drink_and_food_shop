@@ -3,6 +3,7 @@
 import { useParams } from 'next/navigation';
 import { useRouter } from '@/i18n/routing';
 import { useCartStore } from '@/store/cart-store';
+import { useAuthStore } from '@/store/auth-store';
 import { formatPrice } from '@/lib/utils';
 import Image from 'next/image';
 import { ArrowLeft, Plus, Minus, Check, Star } from 'lucide-react';
@@ -14,7 +15,8 @@ import type { Product } from '@/types';
 export default function ProductDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const addItem = useCartStore((state) => state.addItem);
+  const syncAddItem = useCartStore((state) => state.syncAddItem);
+  const accessToken = useAuthStore((state) => state.accessToken);
 
   const [quantity, setQuantity] = useState(1);
   const [selectedOptions, setSelectedOptions] = useState<Record<string, string[]>>({});
@@ -100,7 +102,7 @@ export default function ProductDetailPage() {
     return total * quantity;
   };
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
     const optionsArray: any[] = [];
 
     if (product.optionGroups) {
@@ -122,15 +124,18 @@ export default function ProductDetailPage() {
       });
     }
 
-    addItem({
-      id: `${product.id}-${Date.now()}`,
-      productId: product.id,
-      productName: product.name,
-      productImage: product.image,
-      basePrice: basePrice,
-      quantity: quantity,
-      selectedOptions: optionsArray,
-    });
+    // Nếu đã đăng nhập → đồng bộ lên MongoDB; nếu guest → lưu local
+    await syncAddItem(
+      {
+        productId: product.id,
+        productName: product.name,
+        productImage: product.image,
+        basePrice: basePrice,
+        quantity: quantity,
+        selectedOptions: optionsArray,
+      },
+      accessToken
+    );
 
     router.push('/cart');
   };
