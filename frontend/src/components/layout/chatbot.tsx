@@ -50,17 +50,17 @@ export function Chatbot() {
       const textLower = userMsg.toLowerCase();
 
       if (textLower.includes('khuyến mãi') || textLower.includes('voucher') || textLower.includes('giảm giá') || textLower.includes('code')) {
-        reply = '🎁 F&B Shop đang có các mã giảm giá siêu hot:\n- **GIAM20**: Giảm 20% đơn từ 40K\n- **GIAM50K**: Giảm thẳng 50K cho đơn từ 150K\n- **FBFREE**: Giảm 15K phí vận chuyển cho đơn từ 30K.\nHãy nhập mã tại trang Thanh toán nhé!';
+        reply = 'F&B Shop đang có các mã giảm giá siêu hot:\n- **GIAM20**: Giảm 20% đơn từ 40K\n- **GIAM50K**: Giảm thẳng 50K cho đơn từ 150K\n- **FBFREE**: Giảm 15K phí vận chuyển cho đơn từ 30K.\nHãy nhập mã tại trang Thanh toán nhé!';
       } else if (textLower.includes('ship') || textLower.includes('phí') || textLower.includes('giao')) {
-        reply = '🛵 Phí giao hàng tại shop đồng giá chỉ **15.000đ** cho mọi khu vực trong bán kính 5km. Shop cam kết giao nhanh nóng hổi trong vòng 30 phút!';
+        reply = 'Phí giao hàng tại shop đồng giá chỉ **15.000đ** cho mọi khu vực trong bán kính 5km. Shop cam kết giao nhanh nóng hổi trong vòng 30 phút!';
       } else if (textLower.includes('món') || textLower.includes('ngon') || textLower.includes('bán chạy') || textLower.includes('menu') || textLower.includes('gợi ý')) {
-        reply = '🥤 Gợi ý các món Best Seller của quán:\n1. Trà sữa trân châu đường đen (35k)\n2. Trà đào cam sả hoàng gia (38k)\n3. Bạc Xỉu đá cốt dừa (29k)\n4. Cà phê Muối xứ Huế (32k)\n5. Nem chua rán Hà Nội giòn rụm (32k).\nBạn vào phần "Thực đơn" để đặt ngay nhé!';
+        reply = 'Gợi ý các món Best Seller của quán:\n1. Trà sữa trân châu đường đen (35k)\n2. Trà đào cam sả hoàng gia (38k)\n3. Bạc Xỉu đá cốt dừa (29k)\n4. Cà phê Muối xứ Huế (32k)\n5. Nem chua rán Hà Nội giòn rụm (32k).\nBạn vào phần "Thực đơn" để đặt ngay nhé!';
       } else if (textLower.includes('thanh toán') || textLower.includes('vietqr') || textLower.includes('sepay') || textLower.includes('chuyển khoản')) {
-        reply = '💵 Bạn có thể chọn thanh toán khi nhận hàng (COD) hoặc Chuyển khoản VietQR tự động qua cổng SePay. Khi chọn VietQR, hệ thống sẽ hiển thị mã QR kèm số tiền và nội dung chuyển khoản được cấu hình tự động, giúp kích hoạt đơn hàng tức thì!';
+        reply = 'Bạn có thể chọn thanh toán khi nhận hàng (COD) hoặc Chuyển khoản VietQR tự động qua cổng SePay. Khi chọn VietQR, hệ thống sẽ hiển thị mã QR kèm số tiền và nội dung chuyển khoản được cấu hình tự động, giúp kích hoạt đơn hàng tức thì!';
       } else if (textLower.includes('chào') || textLower.includes('hello') || textLower.includes('hi') || textLower.includes('hey')) {
-        reply = '👋 Xin chào bạn! Rất vui được hỗ trợ bạn. Bạn muốn tìm hiểu thông tin về "thực đơn", "mã giảm giá" hay "phí giao hàng" nào?';
+        reply = 'Xin chào bạn! Rất vui được hỗ trợ bạn. Bạn muốn tìm hiểu thông tin về "thực đơn", "mã giảm giá" hay "phí giao hàng" nào?';
       } else {
-        reply = '🤖 Cảm ơn bạn đã nhắn tin. Hiện tại nhân viên đang bận phục vụ khách hàng trực tiếp. Tôi là trợ lý ảo F&B, bạn có thể hỏi tôi các câu hỏi như "khuyến mãi", "phí ship", "món ngon bán chạy" hoặc "cách thanh toán" nhé!';
+        reply = 'Cảm ơn bạn đã nhắn tin. Hiện tại nhân viên đang bận phục vụ khách hàng trực tiếp. Tôi là trợ lý ảo F&B, bạn có thể hỏi tôi các câu hỏi như "khuyến mãi", "phí ship", "món ngon bán chạy" hoặc "cách thanh toán" nhé!';
       }
 
       setMessages((prev) => [

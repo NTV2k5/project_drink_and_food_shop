@@ -164,7 +164,7 @@ export function Header() {
                     onClick={() => router.push('/admin')}
                     className="w-full text-left rounded-xl px-3 py-2 text-xs font-medium cursor-pointer transition text-zinc-750 hover:bg-zinc-50 hover:text-orange-600 flex items-center gap-2"
                   >
-                    <span>🛠️ Admin Dashboard</span>
+                    <span>Admin Dashboard</span>
                   </button>
                 )}
 
@@ -173,7 +173,7 @@ export function Header() {
                     onClick={() => router.push('/shipper')}
                     className="w-full text-left rounded-xl px-3 py-2 text-xs font-medium cursor-pointer transition text-zinc-750 hover:bg-zinc-50 hover:text-orange-600 flex items-center gap-2"
                   >
-                    <span>🛵 Shipper Dashboard</span>
+                    <span>Shipper Dashboard</span>
                   </button>
                 )}
 
@@ -184,7 +184,7 @@ export function Header() {
                   }}
                   className="w-full text-left rounded-xl px-3 py-2 text-xs font-bold cursor-pointer transition text-red-500 hover:bg-red-50 flex items-center gap-2 border-t border-zinc-100 mt-1"
                 >
-                  <span>🚪 {t('logoutBtn')}</span>
+                  <span>{t('logoutBtn')}</span>
                 </button>
               </div>
             </div>

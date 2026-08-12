@@ -80,12 +80,20 @@ Server sẽ khởi động và thông báo:
 
 ## 🔍 Hướng dẫn kiểm thử API (Postman)
 
-Để làm báo cáo kiểm thử bằng hình ảnh minh họa theo yêu cầu đề bài:
+Hệ thống cung cấp sẵn 2 tệp bộ sưu tập kiểm thử Postman trong thư mục `backend`:
+
+1. **`test_api_full.json` (Bộ sưu tập ĐẦY ĐỦ 52 APIs)**:
+   - Chứa toàn bộ 52 APIs hệ thống được chia thành 8 thư mục chuẩn hóa: *Authentication & Users, Categories, Products, Shopping Cart, Orders & Checkout & Shipper, Locations & Geocoding, Reviews, System & Health*.
+   - Đã tích hợp sẵn script tự động lưu Token (`admin_token`, `customer_token`, `shipper_token`) sau khi chạy Đăng nhập.
+
+2. **`test_api.json` (Bộ sưu tập Kịch bản luồng chính 12 APIs)**:
+   - Chứa các request của luồng trải nghiệm cốt lõi để test nhanh và chụp ảnh màn hình làm báo cáo tiểu luận.
+
+**Cách sử dụng trong Postman:**
 1. Mở phần mềm **Postman**.
 2. Nhấn nút **Import** ở góc trên cùng bên trái.
-3. Chọn tệp tin `test_api.json` nằm trong thư mục `backend` của dự án để tải bộ sưu tập kiểm thử vào.
-4. Bộ sưu tập sẽ tự động tạo sẵn 6 thư mục kiểm thử từ: Đăng ký/đăng nhập, lấy danh mục, lấy sản phẩm, thêm địa điểm (tự động định vị), xem giỏ hàng và đặt hàng.
-5. Tiến hành gửi các request và chụp ảnh kết quả JSON phản hồi từ server để đưa vào tiểu luận.
+3. Chọn tệp `test_api_full.json` (hoặc `test_api.json`) trong thư mục `backend`.
+4. Tiến hành chạy các request và kiểm tra dữ liệu JSON phản hồi từ server.
 
 > **Đặc biệt lưu ý chức năng Định vị (Geocoding API):**
 > Gửi request `POST /locations` (Thêm địa điểm mới) với địa chỉ đầy đủ mà không truyền vĩ độ/kinh độ. Hệ thống sẽ tự động gọi OpenStreetMap Nominatim API bên ngoài và trả về tọa độ `lat` và `lng` chính xác của địa chỉ đó! Có thể xem log ở màn hình console của server để thấy tiến trình này hoạt động thời gian thực.

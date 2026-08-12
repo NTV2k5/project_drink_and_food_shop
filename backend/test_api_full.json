@@ -1,0 +1,690 @@
+{
+  "info": {
+    "_postman_id": "9f8e7d6c-5b4a-3f2e-1d0c-9b8a7f6e5d4c",
+    "name": "F&B Shop - Full 52 APIs Test Collection",
+    "description": "Bộ sưu tập Postman chứa ĐẦY ĐỦ 52 APIs của hệ thống F&B Shop (NodeJS/ExpressJS/MongoDB). Tự động lưu Token (Admin, Customer, Shipper) khi đăng nhập.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Authentication & Users (9 APIs)",
+      "item": [
+        {
+          "name": "1.1 Đăng ký Khách hàng",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"fullName\": \"Nguyễn Văn B\",\n  \"email\": \"vanb@gmail.com\",\n  \"phone\": \"0966778899\",\n  \"password\": \"123456\"\n}"
+            },
+            "url": { "raw": "{{api_url}}/auth/register", "host": ["{{api_url}}"], "path": ["auth", "register"] },
+            "description": "Đăng ký tài khoản người dùng mới (Customer)."
+          }
+        },
+        {
+          "name": "1.2 Đăng nhập Admin (Lưu admin_token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.accessToken) {",
+                  "    pm.environment.set(\"admin_token\", jsonData.accessToken);",
+                  "    pm.environment.set(\"admin_refresh\", jsonData.refreshToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@fb.com\",\n  \"password\": \"123456\"\n}"
+            },
+            "url": { "raw": "{{api_url}}/auth/login", "host": ["{{api_url}}"], "path": ["auth", "login"] },
+            "description": "Đăng nhập tài khoản Admin và tự động lưu admin_token vào biến môi trường Postman."
+          }
+        },
+        {
+          "name": "1.3 Đăng nhập Khách hàng (Lưu customer_token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.accessToken) {",
+                  "    pm.environment.set(\"customer_token\", jsonData.accessToken);",
+                  "    pm.environment.set(\"customer_refresh\", jsonData.refreshToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"customer@fb.com\",\n  \"password\": \"123456\"\n}"
+            },
+            "url": { "raw": "{{api_url}}/auth/login", "host": ["{{api_url}}"], "path": ["auth", "login"] },
+            "description": "Đăng nhập tài khoản Khách hàng và tự động lưu customer_token vào biến môi trường Postman."
+          }
+        },
+        {
+          "name": "1.4 Đăng nhập Shipper (Lưu shipper_token)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData.accessToken) {",
+                  "    pm.environment.set(\"shipper_token\", jsonData.accessToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"shipper@fb.com\",\n  \"password\": \"123456\"\n}"
+            },
+            "url": { "raw": "{{api_url}}/auth/login", "host": ["{{api_url}}"], "path": ["auth", "login"] },
+            "description": "Đăng nhập tài khoản Shipper và tự động lưu shipper_token."
+          }
+        },
+        {
+          "name": "1.5 Làm mới Access Token (Refresh Token)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{customer_refresh}}\"\n}"
+            },
+            "url": { "raw": "{{api_url}}/auth/refresh-token", "host": ["{{api_url}}"], "path": ["auth", "refresh-token"] },
+            "description": "Cấp Access Token mới bằng Refresh Token."
+          }
+        },
+        {
+          "name": "1.6 Lấy thông tin cá nhân (Profile)",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{customer_token}}", "type": "string" }] },
+            "method": "GET",
+            "url": { "raw": "{{api_url}}/auth/me", "host": ["{{api_url}}"], "path": ["auth", "me"] },
+            "description": "Lấy thông tin tài khoản đang đăng nhập."
+          }
+        },
+        {
+          "name": "1.7 Đăng xuất (Logout)",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{customer_token}}", "type": "string" }] },
+            "method": "POST",
+            "url": { "raw": "{{api_url}}/auth/logout", "host": ["{{api_url}}"], "path": ["auth", "logout"] },
+            "description": "Đăng xuất tài khoản phía client."
+          }
+        },
+        {
+          "name": "1.8 [Admin] Lấy danh sách toàn bộ User",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{admin_token}}", "type": "string" }] },
+            "method": "GET",
+            "url": { "raw": "{{api_url}}/auth/users", "host": ["{{api_url}}"], "path": ["auth", "users"] },
+            "description": "Admin lấy danh sách tất cả các tài khoản trong hệ thống."
+          }
+        },
+        {
+          "name": "1.9 [Admin] Cập nhật Vai trò User (Role)",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{admin_token}}", "type": "string" }] },
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"SHIPPER\"\n}"
+            },
+            "url": { "raw": "{{api_url}}/auth/users/USER_ID_HERE/role", "host": ["{{api_url}}"], "path": ["auth", "users", "USER_ID_HERE", "role"] },
+            "description": "Admin phân quyền người dùng sang CUSTOMER / SHIPPER / ADMIN."
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Categories - Danh mục món ăn (6 APIs)",
+      "item": [
+        {
+          "name": "2.1 Lấy tất cả danh mục",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{api_url}}/categories", "host": ["{{api_url}}"], "path": ["categories"] },
+            "description": "Lấy danh sách tất cả danh mục món ăn công khai."
+          }
+        },
+        {
+          "name": "2.2 Lấy danh mục theo Slug",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{api_url}}/categories/slug/tra-sua", "host": ["{{api_url}}"], "path": ["categories", "slug", "tra-sua"] },
+            "description": "Lấy thông tin danh mục theo slug."
+          }
+        },
+        {
+          "name": "2.3 Lấy chi tiết danh mục theo ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{api_url}}/categories/CATEGORY_ID_HERE", "host": ["{{api_url}}"], "path": ["categories", "CATEGORY_ID_HERE"] },
+            "description": "Lấy chi tiết danh mục theo ID."
+          }
+        },
+        {
+          "name": "2.4 [Admin] Tạo danh mục mới",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{admin_token}}", "type": "string" }] },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Đồ Ăn Vặt Nóng\",\n  \"slug\": \"do-an-vat-nong\",\n  \"description\": \"Các món ăn vặt chiên rán giòn rụm\"\n}"
+            },
+            "url": { "raw": "{{api_url}}/categories", "host": ["{{api_url}}"], "path": ["categories"] },
+            "description": "Admin thêm danh mục món mới."
+          }
+        },
+        {
+          "name": "2.5 [Admin] Cập nhật danh mục",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{admin_token}}", "type": "string" }] },
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Đồ Ăn Vặt Nóng Hổi\",\n  \"sortOrder\": 2\n}"
+            },
+            "url": { "raw": "{{api_url}}/categories/CATEGORY_ID_HERE", "host": ["{{api_url}}"], "path": ["categories", "CATEGORY_ID_HERE"] },
+            "description": "Admin chỉnh sửa danh mục."
+          }
+        },
+        {
+          "name": "2.6 [Admin] Xóa danh mục",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{admin_token}}", "type": "string" }] },
+            "method": "DELETE",
+            "url": { "raw": "{{api_url}}/categories/CATEGORY_ID_HERE", "host": ["{{api_url}}"], "path": ["categories", "CATEGORY_ID_HERE"] },
+            "description": "Admin xóa danh mục."
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Products - Món ăn & Thực đơn (9 APIs)",
+      "item": [
+        {
+          "name": "3.1 Lấy danh sách món ăn & Lọc",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{api_url}}/products?limit=10&page=1&search=trà&featured=true",
+              "host": ["{{api_url}}"],
+              "path": ["products"],
+              "query": [
+                { "key": "limit", "value": "10" },
+                { "key": "page", "value": "1" },
+                { "key": "search", "value": "trà" },
+                { "key": "featured", "value": "true" }
+              ]
+            },
+            "description": "Lấy danh sách sản phẩm có hỗ trợ phân trang, tìm kiếm, lọc danh mục."
+          }
+        },
+        {
+          "name": "3.2 Lấy món bán chạy (Bestsellers)",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{api_url}}/products/bestsellers?limit=8",
+              "host": ["{{api_url}}"],
+              "path": ["products", "bestsellers"],
+              "query": [{ "key": "limit", "value": "8" }]
+            },
+            "description": "Lấy danh sách các món bán chạy nhất."
+          }
+        },
+        {
+          "name": "3.3 Lấy chi tiết món theo Slug",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{api_url}}/products/slug/tra-sua-tranchau-duongden", "host": ["{{api_url}}"], "path": ["products", "slug", "tra-sua-tranchau-duongden"] },
+            "description": "Lấy thông tin chi tiết món theo slug."
+          }
+        },
+        {
+          "name": "3.4 Lấy chi tiết món theo ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{api_url}}/products/PRODUCT_ID_HERE", "host": ["{{api_url}}"], "path": ["products", "PRODUCT_ID_HERE"] },
+            "description": "Lấy thông tin món theo ID."
+          }
+        },
+        {
+          "name": "3.5 Lấy danh sách nhận xét đánh giá của món",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{api_url}}/products/PRODUCT_ID_HERE/reviews", "host": ["{{api_url}}"], "path": ["products", "PRODUCT_ID_HERE", "reviews"] },
+            "description": "Lấy danh sách đánh giá từ người mua của 1 sản phẩm cụ thể."
+          }
+        },
+        {
+          "name": "3.6 [Admin] Tạo món ăn mới",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{admin_token}}", "type": "string" }] },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Trà Matcha Kem Cheese\",\n  \"slug\": \"tra-matcha-kem-cheese\",\n  \"description\": \"Matcha Nhật Bản kết hợp lớp kem cheese béo ngậy\",\n  \"basePrice\": 45000,\n  \"categoryId\": \"CATEGORY_ID_HERE\",\n  \"image\": \"https://images.unsplash.com/photo-1541658016709-82535e94bc69?w=800\",\n  \"isFeatured\": true\n}"
+            },
+            "url": { "raw": "{{api_url}}/products", "host": ["{{api_url}}"], "path": ["products"] },
+            "description": "Admin tạo món ăn mới vào thực đơn."
+          }
+        },
+        {
+          "name": "3.7 [Admin] Cập nhật món ăn",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{admin_token}}", "type": "string" }] },
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"basePrice\": 48000,\n  \"isFeatured\": true\n}"
+            },
+            "url": { "raw": "{{api_url}}/products/PRODUCT_ID_HERE", "host": ["{{api_url}}"], "path": ["products", "PRODUCT_ID_HERE"] },
+            "description": "Admin chỉnh sửa thông tin món ăn."
+          }
+        },
+        {
+          "name": "3.8 [Admin] Đổi trạng thái Bán / Hết hàng",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{admin_token}}", "type": "string" }] },
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"isAvailable\": false\n}"
+            },
+            "url": { "raw": "{{api_url}}/products/PRODUCT_ID_HERE/availability", "host": ["{{api_url}}"], "path": ["products", "PRODUCT_ID_HERE", "availability"] },
+            "description": "Admin bật hoặc tắt trạng thái kinh doanh của món ăn."
+          }
+        },
+        {
+          "name": "3.9 [Admin] Xóa món ăn",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{admin_token}}", "type": "string" }] },
+            "method": "DELETE",
+            "url": { "raw": "{{api_url}}/products/PRODUCT_ID_HERE", "host": ["{{api_url}}"], "path": ["products", "PRODUCT_ID_HERE"] },
+            "description": "Admin xóa món ăn khỏi hệ thống."
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Shopping Cart - Giỏ hàng (5 APIs)",
+      "item": [
+        {
+          "name": "4.1 Lấy giỏ hàng cá nhân",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{customer_token}}", "type": "string" }] },
+            "method": "GET",
+            "url": { "raw": "{{api_url}}/cart", "host": ["{{api_url}}"], "path": ["cart"] },
+            "description": "Lấy tất cả các món trong giỏ hàng của user đang đăng nhập."
+          }
+        },
+        {
+          "name": "4.2 Thêm món vào giỏ hàng",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{customer_token}}", "type": "string" }] },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": \"PRODUCT_ID_HERE\",\n  \"quantity\": 2,\n  \"selectedOptions\": [\n    {\n      \"groupId\": \"size-group-id\",\n      \"optionId\": \"size-l-id\"\n    }\n  ],\n  \"note\": \"Ít đá 50%\"\n}"
+            },
+            "url": { "raw": "{{api_url}}/cart", "host": ["{{api_url}}"], "path": ["cart"] },
+            "description": "Thêm một món kèm tùy chọn size/topping vào giỏ hàng."
+          }
+        },
+        {
+          "name": "4.3 Cập nhật món trong giỏ hàng",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{customer_token}}", "type": "string" }] },
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 3,\n  \"note\": \"Không lấy ống hút\"\n}"
+            },
+            "url": { "raw": "{{api_url}}/cart/CART_ITEM_ID_HERE", "host": ["{{api_url}}"], "path": ["cart", "CART_ITEM_ID_HERE"] },
+            "description": "Cập nhật số lượng hoặc ghi chú của món hàng trong giỏ."
+          }
+        },
+        {
+          "name": "4.4 Xóa món khỏi giỏ hàng",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{customer_token}}", "type": "string" }] },
+            "method": "DELETE",
+            "url": { "raw": "{{api_url}}/cart/CART_ITEM_ID_HERE", "host": ["{{api_url}}"], "path": ["cart", "CART_ITEM_ID_HERE"] },
+            "description": "Xóa 1 món cụ thể khỏi giỏ hàng."
+          }
+        },
+        {
+          "name": "4.5 Dọn sạch toàn bộ giỏ hàng",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{customer_token}}", "type": "string" }] },
+            "method": "DELETE",
+            "url": { "raw": "{{api_url}}/cart", "host": ["{{api_url}}"], "path": ["cart"] },
+            "description": "Xóa toàn bộ các món trong giỏ hàng của user."
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Orders & Checkout - Đơn hàng, Voucher & Shipper (16 APIs)",
+      "item": [
+        {
+          "name": "5.1 Webhook SePay VietQR (Tự động nhận tiền)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": 123456,\n  \"gateway\": \"MBBank\",\n  \"transactionDate\": \"2026-08-12 14:00:00\",\n  \"accountNumber\": \"0123456789\",\n  \"subAccount\": null,\n  \"code\": null,\n  \"content\": \"FB1001\",\n  \"transferType\": \"in\",\n  \"transferAmount\": 105000,\n  \"accumulated\": 105000,\n  \"referenceCode\": \"FT2612345678\"\n}"
+            },
+            "url": { "raw": "{{api_url}}/orders/sepay-webhook", "host": ["{{api_url}}"], "path": ["orders", "sepay-webhook"] },
+            "description": "Webhook được hệ thống SePay tự động gọi khi ngân hàng báo chuyển khoản thành công."
+          }
+        },
+        {
+          "name": "5.2 Tạo đơn hàng mới (Checkout)",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{customer_token}}", "type": "string" }] },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paymentMethod\": \"SEPAY\",\n  \"shippingFee\": 15000,\n  \"deliveryAddress\": {\n    \"label\": \"Nhà riêng\",\n    \"fullAddress\": \"123 Nguyễn Thị Minh Khai, Q.1, TP.HCM\",\n    \"lat\": 10.7769,\n    \"lng\": 106.7009\n  },\n  \"items\": [\n    {\n      \"productId\": \"PRODUCT_ID_HERE\",\n      \"quantity\": 2,\n      \"selectedOptions\": [],\n      \"note\": \"Ít đá\"\n    }\n  ],\n  \"couponCode\": \"GIAM20\",\n  \"note\": \"Giao trước 12h\"\n}"
+            },
+            "url": { "raw": "{{api_url}}/orders", "host": ["{{api_url}}"], "path": ["orders"] },
+            "description": "Tạo đơn hàng mới với hình thức VietQR SePay hoặc COD."
+          }
+        },
+        {
+          "name": "5.3 Khách xem danh sách đơn hàng của mình",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{customer_token}}", "type": "string" }] },
+            "method": "GET",
+            "url": { "raw": "{{api_url}}/orders", "host": ["{{api_url}}"], "path": ["orders"] },
+            "description": "Lấy danh sách các đơn hàng cá nhân đã đặt."
+          }
+        },
+        {
+          "name": "5.4 Khách xem chi tiết 1 đơn hàng cụ thể",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{customer_token}}", "type": "string" }] },
+            "method": "GET",
+            "url": { "raw": "{{api_url}}/orders/ORDER_ID_HERE", "host": ["{{api_url}}"], "path": ["orders", "ORDER_ID_HERE"] },
+            "description": "Xem chi tiết tiến trình đơn hàng theo ID."
+          }
+        },
+        {
+          "name": "5.5 Khách kiểm tra Mã giảm giá (Check Coupon)",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{customer_token}}", "type": "string" }] },
+            "method": "GET",
+            "url": { "raw": "{{api_url}}/orders/coupon/GIAM20", "host": ["{{api_url}}"], "path": ["orders", "coupon", "GIAM20"] },
+            "description": "Khách nhập kiểm tra hiệu lực của mã giảm giá khi Checkout."
+          }
+        },
+        {
+          "name": "5.6 Khách viết Đánh giá đơn hàng thành công",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{customer_token}}", "type": "string" }] },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": \"PRODUCT_ID_HERE\",\n  \"rating\": 5,\n  \"comment\": \"Trà sữa rất ngon, giao siêu nhanh!\"\n}"
+            },
+            "url": { "raw": "{{api_url}}/orders/ORDER_ID_HERE/reviews", "host": ["{{api_url}}"], "path": ["orders", "ORDER_ID_HERE", "reviews"] },
+            "description": "Đánh giá sao và nhận xét đơn hàng đã nhận."
+          }
+        },
+        {
+          "name": "5.7 [Shipper] Lấy danh sách đơn chờ nhận giao",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{shipper_token}}", "type": "string" }] },
+            "method": "GET",
+            "url": { "raw": "{{api_url}}/orders/shipper/available", "host": ["{{api_url}}"], "path": ["orders", "shipper", "available"] },
+            "description": "Shipper xem danh sách các đơn hàng đã sẵn sàng giao."
+          }
+        },
+        {
+          "name": "5.8 [Shipper] Lấy danh sách đơn shipper đang nhận",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{shipper_token}}", "type": "string" }] },
+            "method": "GET",
+            "url": { "raw": "{{api_url}}/orders/shipper/active", "host": ["{{api_url}}"], "path": ["orders", "shipper", "active"] },
+            "description": "Shipper xem đơn hàng mình đang trực tiếp đi giao."
+          }
+        },
+        {
+          "name": "5.9 [Shipper] Bấm Nhận giao đơn hàng (Claim)",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{shipper_token}}", "type": "string" }] },
+            "method": "PATCH",
+            "url": { "raw": "{{api_url}}/orders/ORDER_ID_HERE/claim", "host": ["{{api_url}}"], "path": ["orders", "ORDER_ID_HERE", "claim"] },
+            "description": "Shipper bấm nhận trách nhiệm giao đơn hàng."
+          }
+        },
+        {
+          "name": "5.10 Cập nhật Trạng thái đơn hàng",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{shipper_token}}", "type": "string" }] },
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"DELIVERED\",\n  \"note\": \"Đã giao tận tay khách\"\n}"
+            },
+            "url": { "raw": "{{api_url}}/orders/ORDER_ID_HERE/status", "host": ["{{api_url}}"], "path": ["orders", "ORDER_ID_HERE", "status"] },
+            "description": "Shipper/Admin cập nhật trạng thái đơn (CONFIRMED, PREPARING, DELIVERING, DELIVERED, CANCELLED)."
+          }
+        },
+        {
+          "name": "5.11 [Admin] Quản lý xem toàn bộ Đơn hàng",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{admin_token}}", "type": "string" }] },
+            "method": "GET",
+            "url": { "raw": "{{api_url}}/orders/admin", "host": ["{{api_url}}"], "path": ["orders", "admin"] },
+            "description": "Admin xem danh sách tất cả các đơn hàng toàn hệ thống."
+          }
+        },
+        {
+          "name": "5.12 [Admin] Thống kê Doanh thu & Tổng đơn",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{admin_token}}", "type": "string" }] },
+            "method": "GET",
+            "url": { "raw": "{{api_url}}/orders/admin/analytics/revenue", "host": ["{{api_url}}"], "path": ["orders", "admin", "analytics", "revenue"] },
+            "description": "Admin xem báo cáo biểu đồ doanh thu và chỉ số đơn hàng."
+          }
+        },
+        {
+          "name": "5.13 [Admin] Lấy danh sách Voucher",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{admin_token}}", "type": "string" }] },
+            "method": "GET",
+            "url": { "raw": "{{api_url}}/orders/coupons/admin", "host": ["{{api_url}}"], "path": ["orders", "coupons", "admin"] },
+            "description": "Admin xem danh sách tất cả các mã giảm giá."
+          }
+        },
+        {
+          "name": "5.14 [Admin] Tạo Voucher giảm giá mới",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{admin_token}}", "type": "string" }] },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"HE2026\",\n  \"type\": \"PERCENT\",\n  \"value\": 20,\n  \"minOrderAmount\": 50000,\n  \"maxDiscountAmount\": 30000\n}"
+            },
+            "url": { "raw": "{{api_url}}/orders/coupons/admin", "host": ["{{api_url}}"], "path": ["orders", "coupons", "admin"] },
+            "description": "Admin phát hành mã giảm giá mới."
+          }
+        },
+        {
+          "name": "5.15 [Admin] Xóa Voucher giảm giá",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{admin_token}}", "type": "string" }] },
+            "method": "DELETE",
+            "url": { "raw": "{{api_url}}/orders/coupons/admin/COUPON_ID_HERE", "host": ["{{api_url}}"], "path": ["orders", "coupons", "admin", "COUPON_ID_HERE"] },
+            "description": "Admin xóa mã giảm giá."
+          }
+        },
+        {
+          "name": "5.16 [Admin] Xem tất cả Nhận xét Đánh giá",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{admin_token}}", "type": "string" }] },
+            "method": "GET",
+            "url": { "raw": "{{api_url}}/orders/reviews/admin", "host": ["{{api_url}}"], "path": ["orders", "reviews", "admin"] },
+            "description": "Admin xem tất cả đánh giá từ người dùng."
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Locations & Geocoding - Địa điểm & Định vị OSM (5 APIs)",
+      "item": [
+        {
+          "name": "6.1 Xem danh sách địa điểm cửa hàng",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{api_url}}/locations", "host": ["{{api_url}}"], "path": ["locations"] },
+            "description": "Lấy danh sách các cửa hàng/chi nhánh."
+          }
+        },
+        {
+          "name": "6.2 Xem chi tiết địa điểm theo ID",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "{{api_url}}/locations/LOCATION_ID_HERE", "host": ["{{api_url}}"], "path": ["locations", "LOCATION_ID_HERE"] },
+            "description": "Xem chi tiết 1 chi nhánh."
+          }
+        },
+        {
+          "name": "6.3 [Admin] Thêm địa điểm mới (Tự động Định vị OSM)",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{admin_token}}", "type": "string" }] },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"F&B Shop - Chi nhánh RMIT\",\n  \"address\": \"700 Nguyễn Văn Linh, Tân Phong, Quận 7, Hồ Chí Minh\",\n  \"description\": \"Chi nhánh đối diện Đại học RMIT Nam Sài Gòn.\",\n  \"phone\": \"02899887766\"\n}"
+            },
+            "url": { "raw": "{{api_url}}/locations", "host": ["{{api_url}}"], "path": ["locations"] },
+            "description": "Admin thêm địa điểm mới. Nếu không truyền latitude/longitude, server tự động gọi OpenStreetMap Nominatim để lấy tọa độ thực tế."
+          }
+        },
+        {
+          "name": "6.4 [Admin] Cập nhật địa điểm",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{admin_token}}", "type": "string" }] },
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"F&B Shop - Chi nhánh RMIT Sài Gòn\",\n  \"phone\": \"02899887799\"\n}"
+            },
+            "url": { "raw": "{{api_url}}/locations/LOCATION_ID_HERE", "host": ["{{api_url}}"], "path": ["locations", "LOCATION_ID_HERE"] },
+            "description": "Admin cập nhật thông tin chi nhánh."
+          }
+        },
+        {
+          "name": "6.5 [Admin] Xóa địa điểm",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{admin_token}}", "type": "string" }] },
+            "method": "DELETE",
+            "url": { "raw": "{{api_url}}/locations/LOCATION_ID_HERE", "host": ["{{api_url}}"], "path": ["locations", "LOCATION_ID_HERE"] },
+            "description": "Admin xóa chi nhánh cửa hàng."
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Reviews - Quản lý đánh giá (3 APIs)",
+      "item": [
+        {
+          "name": "7.1 [Admin] Xem toàn bộ danh sách Review",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{admin_token}}", "type": "string" }] },
+            "method": "GET",
+            "url": { "raw": "{{api_url}}/reviews", "host": ["{{api_url}}"], "path": ["reviews"] },
+            "description": "Lấy tất cả các nhận xét đánh giá trong hệ thống."
+          }
+        },
+        {
+          "name": "7.2 Tạo Review trực tiếp",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{customer_token}}", "type": "string" }] },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": \"PRODUCT_ID_HERE\",\n  \"rating\": 5,\n  \"comment\": \"Thức uống ngon tuyệt!\"\n}"
+            },
+            "url": { "raw": "{{api_url}}/reviews", "host": ["{{api_url}}"], "path": ["reviews"] },
+            "description": "Tạo review cho sản phẩm."
+          }
+        },
+        {
+          "name": "7.3 Xóa Review theo ID",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{admin_token}}", "type": "string" }] },
+            "method": "DELETE",
+            "url": { "raw": "{{api_url}}/reviews/REVIEW_ID_HERE", "host": ["{{api_url}}"], "path": ["reviews", "REVIEW_ID_HERE"] },
+            "description": "Admin hoặc chính chủ xóa nhận xét."
+          }
+        }
+      ]
+    },
+    {
+      "name": "8. System & Health (1 API)",
+      "item": [
+        {
+          "name": "8.1 Health Check (Kiểm tra sức khỏe Server)",
+          "request": {
+            "method": "GET",
+            "url": { "raw": "http://localhost:4000/health", "protocol": "http", "host": ["localhost"], "port": "4000", "path": ["health"] },
+            "description": "Kiểm tra tình trạng hoạt động và thời gian uptime của Server NodeJS/Express."
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "api_url",
+      "value": "http://localhost:4000/api/v1",
+      "type": "string"
+    }
+  ]
+}
