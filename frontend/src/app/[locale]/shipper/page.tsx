@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/store/auth-store';
 import { formatPrice } from '@/lib/utils';
-import { API_URL } from '@/lib/utils';
+import { API_URL, SOCKET_URL } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Truck, MapPin, CheckCircle, Navigation, Phone, ShieldAlert, ShoppingBag, Loader2, Sparkles, UserCheck, Power, BarChart3, Compass } from 'lucide-react';
 import { Link } from '@/i18n/routing';
@@ -99,7 +99,7 @@ export default function ShipperDashboardPage() {
     if (deliveringOrders.length === 0 || !accessToken) return;
 
     console.log('🔌 Kết nối WebSocket để định vị Shipper cho đơn hàng đang giao...');
-    const socket = io(API_URL.replace('/api/v1', ''), {
+    const socket = io(SOCKET_URL, {
       transports: ['websocket'],
     });
 

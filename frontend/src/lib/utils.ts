@@ -15,3 +15,7 @@ export function formatPrice(amount: number | string): string {
 
 export const API_URL =
   process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000/api/v1";
+
+// WebSocket server URL — tách riêng để dễ cấu hình trên Vercel/Render
+export const SOCKET_URL =
+  process.env.NEXT_PUBLIC_SOCKET_URL ?? API_URL.replace("/api/v1", "");

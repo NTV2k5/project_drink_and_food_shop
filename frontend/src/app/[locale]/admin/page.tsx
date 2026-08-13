@@ -6,7 +6,7 @@ import { Bell, Package, TrendingUp, Users, CheckCircle, Truck, ClipboardList, Sh
 import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/store/auth-store';
 import { useRouter } from 'next/navigation';
-import { API_URL } from '@/lib/utils';
+import { API_URL, SOCKET_URL } from '@/lib/utils';
 import { io } from 'socket.io-client';
 import { Link } from '@/i18n/routing';
 
@@ -184,7 +184,7 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     if (!user || user.role !== 'ADMIN') return;
 
-    const socket = io(API_URL.replace('/api/v1', ''), {
+    const socket = io(SOCKET_URL, {
       transports: ['websocket'],
     });
 

@@ -161,6 +161,8 @@ export default function CheckoutPage() {
           selectedOptions: item.selectedOptions.map((opt) => ({
             groupId: opt.groupId,
             optionId: opt.optionId,
+            optionName: opt.optionName,
+            extraPrice: opt.extraPrice,
           })),
           note: item.note,
         })),

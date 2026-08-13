@@ -1,0 +1,39 @@
+# render.yaml — Infrastructure as Code cho Render.com
+# Đặt file này ở thư mục gốc của repo (project_drink_and_food_shop/)
+# Render sẽ tự đọc file này khi bạn kết nối GitHub repo
+
+services:
+  - type: web
+    name: fnb-backend
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    plan: free
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 4000
+      - key: MONGODB_URI
+        sync: false   # Nhập thủ công trên dashboard Render
+      - key: JWT_ACCESS_SECRET
+        sync: false
+      - key: JWT_REFRESH_SECRET
+        sync: false
+      - key: JWT_ACCESS_EXPIRES
+        value: 15m
+      - key: JWT_REFRESH_EXPIRES
+        value: 7d
+      - key: CORS_ORIGIN
+        sync: false   # Điền URL Vercel frontend: https://your-app.vercel.app
+      - key: SEPAY_BANK_CODE
+        value: "970422"
+      - key: SEPAY_ACCOUNT_NO
+        sync: false
+      - key: SEPAY_ACCOUNT_NAME
+        sync: false
+      - key: SEPAY_WEBHOOK_KEY
+        sync: false
+      - key: SEPAY_API_TOKEN
+        sync: false

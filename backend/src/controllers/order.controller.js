@@ -107,7 +107,8 @@ const createOrder = async (req, res, next) => {
       const product = products.find((p) => p.id === item.productId);
       let itemPrice = product.basePrice;
 
-      // Cộng thêm giá extra từ tùy chọn (Size, Topping...)
+      // Cộng thêm giá extra từ tùy chọn (Size, Topping...) và đảm bảo optionName được lưu
+      const resolvedOptions = [];
       if (item.selectedOptions && item.selectedOptions.length > 0) {
         item.selectedOptions.forEach((selected) => {
           const group = product.optionGroups.find((g) => g.id === selected.groupId || g._id.toString() === selected.groupId);
@@ -115,6 +116,13 @@ const createOrder = async (req, res, next) => {
           if (option) {
             itemPrice += option.extraPrice;
           }
+          // Lưu optionName từ product nếu client không gửi lên
+          resolvedOptions.push({
+            groupId: selected.groupId,
+            optionId: selected.optionId,
+            optionName: selected.optionName || option?.name || '',
+            extraPrice: selected.extraPrice ?? option?.extraPrice ?? 0
+          });
         });
       }
 
@@ -126,7 +134,7 @@ const createOrder = async (req, res, next) => {
         productName: product.name,
         quantity: item.quantity,
         unitPrice: itemPrice,
-        selectedOptions: item.selectedOptions || [],
+        selectedOptions: resolvedOptions,
         note: item.note || null,
         subtotal: itemTotal
       };

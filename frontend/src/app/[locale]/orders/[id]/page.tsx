@@ -3,8 +3,7 @@
 import { useParams } from 'next/navigation';
 import { useRouter } from '@/i18n/routing';
 import { useAuthStore } from '@/store/auth-store';
-import { formatPrice } from '@/lib/utils';
-import { API_URL } from '@/lib/utils';
+import { formatPrice, API_URL, SOCKET_URL } from '@/lib/utils';
 import { useEffect, useState } from 'react';
 import { ArrowLeft, Clock, MapPin, ShieldAlert, Star, CheckCircle, Package, Truck, Compass, Check, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -38,6 +37,7 @@ export default function OrderTrackingPage() {
   const [order, setOrder] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const orderId = Array.isArray(params.id) ? params.id[0] : params.id as string;
 
   // Review states
   const [reviewedProduct, setReviewedProduct] = useState<string>('');
@@ -52,7 +52,7 @@ export default function OrderTrackingPage() {
 
   const fetchOrder = async () => {
     try {
-      const res = await fetch(`${API_URL}/orders/${params.id}`, {
+      const res = await fetch(`${API_URL}/orders/${orderId}`, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
@@ -73,25 +73,25 @@ export default function OrderTrackingPage() {
       return;
     }
     fetchOrder();
-  }, [user, params.id]);
+  }, [user, orderId]);
 
   // Real-time tracking with WebSockets
   useEffect(() => {
-    if (!params.id) return;
+    if (!orderId) return;
     
     // Connect to WebSocket gateway
-    const socket = io(API_URL.replace('/api/v1', ''), {
-      transports: ['websocket'],
+    const socket = io(SOCKET_URL, {
+      transports: ['websocket', 'polling'],
     });
 
     socket.on('connect', () => {
       console.log('🔌 Connected to WebSockets Gateway');
-      socket.emit('joinOrderRoom', params.id);
+      socket.emit('joinOrderRoom', orderId);
     });
 
     socket.on('orderStatusChanged', (data: any) => {
       console.log('🔔 Order Status Changed:', data);
-      if (data.orderId === params.id) {
+      if (data.orderId === orderId) {
         setOrder((prev: any) => prev ? { ...prev, status: data.status } : null);
         fetchOrder(); // Reload full data
       }
@@ -99,7 +99,7 @@ export default function OrderTrackingPage() {
 
     socket.on('paymentReceived', (data: any) => {
       console.log('💵 Payment Received:', data);
-      if (data.orderId === params.id) {
+      if (data.orderId === orderId) {
         setOrder((prev: any) => prev ? { ...prev, paymentStatus: 'PAID', status: 'CONFIRMED' } : null);
         fetchOrder();
       }
@@ -107,7 +107,7 @@ export default function OrderTrackingPage() {
 
     socket.on('shipperLocationChanged', (data: any) => {
       console.log('📍 Shipper location update received:', data);
-      if (data.orderId === params.id) {
+      if (data.orderId === orderId) {
         setShipperLocation({ lat: data.latitude, lng: data.longitude });
       }
     });
@@ -115,7 +115,7 @@ export default function OrderTrackingPage() {
     return () => {
       socket.disconnect();
     };
-  }, [params.id]);
+  }, [orderId]);
 
   // Mock shipper moving on map when status is DELIVERING
   useEffect(() => {
@@ -574,7 +574,10 @@ export default function OrderTrackingPage() {
           <h3 className="font-bold text-zinc-900 border-b border-zinc-150 pb-3">Chi tiết sản phẩm đã đặt</h3>
           <div className="mt-4 space-y-4">
             {order.items.map((item: any) => {
-              const options = typeof item.selectedOptions === 'string' ? JSON.parse(item.selectedOptions) : item.selectedOptions;
+              const options = typeof item.selectedOptions === 'string' ? JSON.parse(item.selectedOptions) : (item.selectedOptions || []);
+              const optionLabels = options
+                .map((o: any) => o.optionName || o.name || o.label || '')
+                .filter(Boolean);
               return (
                 <div key={item.id} className="flex gap-4">
                   <div className="relative h-16 w-16 shrink-0 rounded-2xl overflow-hidden bg-zinc-100 border border-zinc-100 shadow-sm">
@@ -586,9 +589,9 @@ export default function OrderTrackingPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="font-bold text-zinc-900 text-sm">{item.productName}</p>
-                    {options && options.length > 0 && (
+                    {optionLabels.length > 0 && (
                       <p className="text-xs text-zinc-500 mt-0.5">
-                        {options.map((o: any) => o.optionName).join(' · ')}
+                        {optionLabels.join(' · ')}
                       </p>
                     )}
                     <p className="text-xs text-zinc-400 mt-0.5">Số lượng: x{item.quantity}</p>
