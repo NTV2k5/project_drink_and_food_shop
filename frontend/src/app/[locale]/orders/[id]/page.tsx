@@ -67,13 +67,31 @@ export default function OrderTrackingPage() {
     }
   };
 
+  const [mounted, setMounted] = useState(false);
+
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
     if (!user) {
       router.push('/sign-in');
       return;
     }
     fetchOrder();
-  }, [user, orderId]);
+  }, [user, orderId, mounted]);
+
+  // Smart Polling: Tự động tải lại trạng thái đơn mỗi 3s khi đang chờ thanh toán
+  useEffect(() => {
+    if (!order || order.status !== 'PENDING_PAYMENT') return;
+
+    const interval = setInterval(() => {
+      fetchOrder();
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, [order?.status, orderId, accessToken]);
 
   // Real-time tracking with WebSockets
   useEffect(() => {
@@ -312,7 +330,7 @@ export default function OrderTrackingPage() {
     }
   };
 
-  if (loading) {
+  if (loading || !mounted) {
     return (
       <div className="flex min-h-[calc(100vh-10rem)] items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-orange-500 border-t-transparent" />

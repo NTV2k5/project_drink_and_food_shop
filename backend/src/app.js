@@ -10,17 +10,18 @@ const app = express();
 
 // 1. Cấu hình CORS mở rộng cho phép kết nối liên thông frontend (Port 3000)
 const allowedOrigins = process.env.CORS_ORIGIN 
-  ? process.env.CORS_ORIGIN.split(',') 
+  ? process.env.CORS_ORIGIN.split(',').map(s => s.trim().replace(/\/$/, '')) 
   : ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:3001', 'http://127.0.0.1:3001'];
 
 const corsOptions = {
   origin: function (origin, callback) {
-    // Cho phép các request không có origin (ví dụ: công cụ Postman, curl, thiết bị di động)
     if (!origin) return callback(null, true);
     
-    const isLocalhost = origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:');
+    const cleanOrigin = origin.replace(/\/$/, '');
+    const isLocalhost = cleanOrigin.startsWith('http://localhost:') || cleanOrigin.startsWith('http://127.0.0.1:');
+    const isVercel = cleanOrigin.endsWith('.vercel.app');
     
-    if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes('*') || isLocalhost) {
+    if (allowedOrigins.includes(cleanOrigin) || allowedOrigins.includes('*') || isLocalhost || isVercel) {
       callback(null, true);
     } else {
       callback(new Error('Chặn bởi cấu hình CORS. Không cho phép truy cập từ origin này.'));

@@ -14,15 +14,17 @@ const server = http.createServer(app);
 
 // 3. Khởi tạo cổng kết nối WebSocket bằng Socket.IO và cấu hình CORS
 const allowedOrigins = process.env.CORS_ORIGIN 
-  ? process.env.CORS_ORIGIN.split(',') 
+  ? process.env.CORS_ORIGIN.split(',').map(s => s.trim().replace(/\/$/, '')) 
   : ['http://localhost:3000', 'http://127.0.0.1:3000', 'http://localhost:3001', 'http://127.0.0.1:3001'];
 
 const io = new Server(server, {
   cors: {
     origin: function (origin, callback) {
       if (!origin) return callback(null, true);
-      const isLocalhost = origin.startsWith('http://localhost:') || origin.startsWith('http://127.0.0.1:');
-      if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes('*') || isLocalhost) {
+      const cleanOrigin = origin.replace(/\/$/, '');
+      const isLocalhost = cleanOrigin.startsWith('http://localhost:') || cleanOrigin.startsWith('http://127.0.0.1:');
+      const isVercel = cleanOrigin.endsWith('.vercel.app');
+      if (allowedOrigins.includes(cleanOrigin) || allowedOrigins.includes('*') || isLocalhost || isVercel) {
         callback(null, true);
       } else {
         callback(new Error('CORS block'));
