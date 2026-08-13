@@ -67,13 +67,20 @@ export default function ShipperDashboardPage() {
     }
   };
 
+  const [mounted, setMounted] = useState(false);
+
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
     if (!user || user.role !== 'SHIPPER') {
       router.push('/sign-in');
       return;
     }
     fetchOrders();
-  }, [user]);
+  }, [user, mounted]);
 
   // Tự động định vị GPS thực tế của thiết bị ngay khi shipper truy cập trang
   useEffect(() => {
@@ -196,7 +203,7 @@ export default function ShipperDashboardPage() {
     }
   };
 
-  if (loading) {
+  if (loading || !mounted) {
     return (
       <div className="flex min-h-[calc(100vh-10rem)] items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-4 border-orange-500 border-t-transparent" />

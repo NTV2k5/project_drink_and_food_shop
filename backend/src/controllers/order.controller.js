@@ -258,11 +258,11 @@ const handleSePayWebhook = async (req, res, next) => {
     const data = req.body;
     console.log('[SEPAY WEBHOOK] Nhận dữ liệu webhook:', JSON.stringify(data));
     
-    // Tìm mã hóa đơn dạng DH12345678 trong nội dung chuyển khoản (ưu tiên content trước, description sau)
-    const contentToSearch = data.content || data.description || '';
+    // Tìm mã hóa đơn dạng DH12345678 trong nội dung chuyển khoản (kiểm tra code, content và description)
+    const contentToSearch = `${data.code || ''} ${data.content || ''} ${data.description || ''}`;
     const transactionCode = contentToSearch.match(/DH\d{8}/)?.[0];
     if (!transactionCode) {
-      console.warn(`[SEPAY WEBHOOK] Không tìm thấy mã đơn hàng DHxxx trong nội dung CK: "${contentToSearch}"`);
+      console.warn(`[SEPAY WEBHOOK] Không tìm thấy mã đơn hàng DHxxx trong dữ liệu CK: "${contentToSearch}"`);
       return res.status(200).json({ success: false, message: 'Không tìm thấy mã đơn hàng.' });
     }
 
