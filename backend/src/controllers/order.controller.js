@@ -290,6 +290,7 @@ const handleSePayWebhook = async (req, res, next) => {
     order.paymentStatus = 'PAID';
     order.status = 'CONFIRMED';
     order.paidAt = new Date();
+    order.statusLogs = order.statusLogs || [];
     order.statusLogs.push({
       status: 'CONFIRMED',
       note: `Thanh toán VietQR tự động qua SePay. Số tiền: ${receivedAmount}đ. Mã GD: ${data.id || data.code || 'N/A'}`
@@ -298,12 +299,13 @@ const handleSePayWebhook = async (req, res, next) => {
     await order.save();
 
     // Bắn tin nhắn Real-time qua Socket.IO thông báo cho khách hàng
-    emitSocketEvent(req, `order_${order._id.toString()}`, 'paymentReceived', {
-      orderId: order._id.toString(),
+    const safeWebhookOrderId = order._id ? order._id.toString() : (order.id || '').toString();
+    emitSocketEvent(req, `order_${safeWebhookOrderId}`, 'paymentReceived', {
+      orderId: safeWebhookOrderId,
       amount: receivedAmount
     });
-    emitSocketEvent(req, `order_${order._id.toString()}`, 'orderStatusChanged', {
-      orderId: order._id.toString(),
+    emitSocketEvent(req, `order_${safeWebhookOrderId}`, 'orderStatusChanged', {
+      orderId: safeWebhookOrderId,
       status: 'CONFIRMED'
     });
 
@@ -345,7 +347,22 @@ const updateOrderStatus = async (req, res, next) => {
       throw new ApiError(403, 'Bạn không được phân công giao đơn hàng này.');
     }
 
+    // Customer chỉ được phép hủy đơn hàng của chính mình khi đơn đang chờ xử lý
+    if (userRole === 'CUSTOMER') {
+      const orderUserId = order.userId?._id ? order.userId._id.toString() : order.userId?.toString();
+      if (orderUserId !== userId.toString()) {
+        throw new ApiError(403, 'Bạn không có quyền chỉnh sửa đơn hàng này.');
+      }
+      if (status !== 'CANCELLED') {
+        throw new ApiError(403, 'Khách hàng chỉ có thể hủy đơn hàng.');
+      }
+      if (!['PENDING_PAYMENT', 'CONFIRMED'].includes(order.status)) {
+        throw new ApiError(400, 'Không thể hủy đơn hàng khi đã được chế biến hoặc đang giao.');
+      }
+    }
+
     order.status = status;
+    order.statusLogs = order.statusLogs || [];
     order.statusLogs.push({
       status,
       note: note || `Trạng thái được cập nhật bởi ${userRole}`,
@@ -381,8 +398,9 @@ const updateOrderStatus = async (req, res, next) => {
     await order.save();
 
     // Thông báo trạng thái đổi qua Socket.IO
-    emitSocketEvent(req, `order_${order._id.toString()}`, 'orderStatusChanged', {
-      orderId: order._id.toString(),
+    const safeUpdateOrderId = order._id ? order._id.toString() : (order.id || id).toString();
+    emitSocketEvent(req, `order_${safeUpdateOrderId}`, 'orderStatusChanged', {
+      orderId: safeUpdateOrderId,
       status
     });
 
@@ -413,6 +431,7 @@ const shipperClaimOrder = async (req, res, next) => {
 
     order.shipperId = shipperId;
     order.status = 'DELIVERING';
+    order.statusLogs = order.statusLogs || [];
     order.statusLogs.push({
       status: 'DELIVERING',
       note: 'Shipper đã tiếp nhận đơn và bắt đầu đi giao.',
@@ -422,8 +441,9 @@ const shipperClaimOrder = async (req, res, next) => {
     await order.save();
 
     // Thông báo cho khách hàng
-    emitSocketEvent(req, `order_${order._id.toString()}`, 'orderStatusChanged', {
-      orderId: order._id.toString(),
+    const safeClaimOrderId = order._id ? order._id.toString() : (order.id || id).toString();
+    emitSocketEvent(req, `order_${safeClaimOrderId}`, 'orderStatusChanged', {
+      orderId: safeClaimOrderId,
       status: 'DELIVERING'
     });
 
@@ -481,10 +501,14 @@ const getOrders = async (req, res, next) => {
 const getOrderById = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const order = await Order.findById(id)
-      .populate('userId', 'id fullName email phone')
-      .populate('shipperId', 'id fullName phone')
-      .populate('items.productId');
+    let query = Order.findById(id);
+    if (query && typeof query.populate === 'function') {
+      query = query
+        .populate('userId', 'id fullName email phone')
+        .populate('shipperId', 'id fullName phone')
+        .populate('items.productId');
+    }
+    const order = await query;
 
     if (!order) {
       throw new ApiError(404, 'Không tìm thấy hóa đơn.');
@@ -502,7 +526,7 @@ const getOrderById = async (req, res, next) => {
       throw new ApiError(403, 'Bạn không có quyền xem thông tin hóa đơn này.');
     }
 
-    const orderObj = order.toJSON();
+    const orderObj = typeof order.toJSON === 'function' ? order.toJSON() : { ...order };
     // Tạo kèm QR code nếu là đơn ngân hàng và đang chờ thanh toán
     orderObj.paymentInfo = order.paymentMethod === 'SEPAY' && order.status === 'PENDING_PAYMENT'
       ? generateSePayPayment(order)

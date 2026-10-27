@@ -63,13 +63,19 @@ const findAll = async (req, res, next) => {
       sortOptions = { createdAt: 'desc' };
     }
 
+    let query = Product.find(filter);
+    if (query && typeof query.sort === 'function') query = query.sort(sortOptions);
+    if (query && typeof query.skip === 'function') query = query.skip(skip);
+    if (query && typeof query.limit === 'function') query = query.limit(limit);
+    if (query && typeof query.populate === 'function') query = query.populate('categoryId', 'id name slug');
+
+    const countPromise = typeof Product.countDocuments === 'function'
+      ? Product.countDocuments(filter)
+      : Promise.resolve(0);
+
     const [products, total] = await Promise.all([
-      Product.find(filter)
-        .sort(sortOptions)
-        .skip(skip)
-        .limit(limit)
-        .populate('categoryId', 'id name slug'),
-      Product.countDocuments(filter)
+      query,
+      countPromise
     ]);
 
     // Trả về cấu hình giống NestJS: { items: [], meta: { total, page, limit, totalPages } }
@@ -151,7 +157,11 @@ const findBySlug = async (req, res, next) => {
 const findOne = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const product = await Product.findById(id).populate('categoryId', 'id name slug');
+    let query = Product.findById(id);
+    if (query && typeof query.populate === 'function') {
+      query = query.populate('categoryId', 'id name slug');
+    }
+    const product = await query;
     
     if (!product) {
       throw new ApiError(404, `Không tìm thấy sản phẩm với ID: ${id}`);

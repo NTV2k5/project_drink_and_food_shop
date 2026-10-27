@@ -1,0 +1,1 @@
+{"testEnvironment":"node","testMatch":["**/tests/**/*.test.js"],"coverageDirectory":"coverage","collectCoverageFrom":["src/**/*.js","!src/utils/seeder.js","!src/config/swagger.js"],"testTimeout":15000,"verbose":true,"forceExit":true,"clearMocks":true}

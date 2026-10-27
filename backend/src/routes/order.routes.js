@@ -6,12 +6,14 @@ const { validateBody } = require('../middleware/validation');
 
 // Tuyến đường công khai cho cổng thanh toán tự động SePay Webhook
 router.post('/sepay-webhook', orderController.handleSePayWebhook);
+router.post('/webhook/sepay', orderController.handleSePayWebhook);
 
 // Đăng ký quyền xác thực cho các tuyến đường đơn hàng
 router.use(requireAuth);
 
 router.post('/', validateBody(['items', 'paymentMethod', 'deliveryAddress', 'shippingFee']), orderController.createOrder);
 router.get('/', orderController.getOrders);
+router.get('/my-orders', orderController.getOrders);
 
 // Admin & Shipper Routes
 router.get('/admin', restrictTo('ADMIN'), orderController.getAdminOrders);

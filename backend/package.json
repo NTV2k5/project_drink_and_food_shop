@@ -6,7 +6,17 @@
   "scripts": {
     "start": "node src/main.js",
     "dev": "nodemon src/main.js",
-    "seed": "node src/utils/seeder.js"
+    "seed": "node src/utils/seeder.js",
+    "test": "cross-env NODE_ENV=test jest --config jest.config.json",
+    "test:unit": "cross-env NODE_ENV=test jest --config jest.config.json --testPathPatterns=layer1-unit",
+    "test:integration": "cross-env NODE_ENV=test jest --config jest.config.json --testPathPatterns=layer2-integration",
+    "test:business": "cross-env NODE_ENV=test jest --config jest.config.json --testPathPatterns=layer3-business",
+    "test:e2e": "cross-env NODE_ENV=test jest --config jest.config.json --testPathPatterns=layer4-e2e",
+    "test:performance": "cross-env NODE_ENV=test jest --config jest.config.json --testPathPatterns=layer5-performance",
+    "test:security": "cross-env NODE_ENV=test jest --config jest.config.json --testPathPatterns=layer6-security",
+    "test:reliability": "cross-env NODE_ENV=test jest --config jest.config.json --testPathPatterns=layer7-reliability",
+    "test:coverage": "cross-env NODE_ENV=test jest --config jest.config.json --coverage",
+    "test:watch": "cross-env NODE_ENV=test jest --config jest.config.json --watch"
   },
   "dependencies": {
     "axios": "^1.7.2",
@@ -22,7 +32,11 @@
     "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.2"
+    "@jest/globals": "^30.5.2",
+    "cross-env": "^10.1.0",
+    "jest": "^30.5.2",
+    "nodemon": "^3.1.2",
+    "supertest": "^7.3.1"
   },
   "private": true,
   "license": "MIT"

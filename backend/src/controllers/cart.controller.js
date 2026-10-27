@@ -14,7 +14,7 @@ const getCart = async (req, res, next) => {
 
     // Định dạng lại kết quả để khớp với cấu trúc Prisma của NestJS (trả về trường product thay vì productId)
     const formattedCart = cartItems.map((item) => {
-      const itemObj = item.toJSON();
+      const itemObj = typeof item.toJSON === 'function' ? item.toJSON() : { ...item };
       itemObj.product = itemObj.productId;
       delete itemObj.productId;
       return itemObj;
@@ -67,12 +67,18 @@ const addToCart = async (req, res, next) => {
     }
 
     // Populate thông tin sản phẩm và danh mục trước khi trả về
-    const populatedResult = await CartItem.findById(result.id).populate({
-      path: 'productId',
-      populate: { path: 'categoryId', select: 'id name slug' }
-    });
+    let populatedResult = null;
+    try {
+      populatedResult = await CartItem.findById(result.id).populate({
+        path: 'productId',
+        populate: { path: 'categoryId', select: 'id name slug' }
+      });
+    } catch {
+      populatedResult = null;
+    }
 
-    const formattedObj = populatedResult.toJSON();
+    const targetObj = populatedResult || result;
+    const formattedObj = typeof targetObj?.toJSON === 'function' ? targetObj.toJSON() : { ...targetObj };
     formattedObj.product = formattedObj.productId;
     delete formattedObj.productId;
 

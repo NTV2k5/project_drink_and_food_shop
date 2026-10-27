@@ -16,6 +16,7 @@ router.post('/logout', requireAuth, authController.logout);
 
 // Các API yêu cầu Token đăng nhập
 router.get('/me', requireAuth, authController.getProfile);
+router.get('/profile', requireAuth, authController.getProfile);
 
 // Các API quản trị dành cho Admin
 router.get('/users', requireAuth, restrictTo('ADMIN'), authController.getAllUsers);
