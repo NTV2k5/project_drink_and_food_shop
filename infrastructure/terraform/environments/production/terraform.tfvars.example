@@ -1,0 +1,8 @@
+environment        = "production"
+aws_region         = "ap-southeast-1"
+availability_zones = ["ap-southeast-1a", "ap-southeast-1b"]
+vpc_cidr           = "10.0.0.0/16"
+app_image          = "123456789012.dkr.ecr.ap-southeast-1.amazonaws.com/fb-shop-backend:v1.0.0"
+min_instances      = 4
+max_instances      = 25
+redis_node_type    = "cache.t4g.medium"

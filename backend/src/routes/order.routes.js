@@ -12,6 +12,7 @@ router.post('/webhook/sepay', orderController.handleSePayWebhook);
 router.use(requireAuth);
 
 router.post('/', validateBody(['items', 'paymentMethod', 'deliveryAddress', 'shippingFee']), orderController.createOrder);
+router.post('/async', validateBody(['items', 'paymentMethod', 'deliveryAddress', 'shippingFee']), orderController.createOrderAsync);
 router.get('/', orderController.getOrders);
 router.get('/my-orders', orderController.getOrders);
 

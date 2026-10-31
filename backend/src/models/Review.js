@@ -35,6 +35,7 @@ const reviewSchema = new mongoose.Schema({
 
 // Compound index to match unique constraint in Prisma
 reviewSchema.index({ userId: 1, orderId: 1, productId: 1 }, { unique: true });
+reviewSchema.index({ productId: 1, createdAt: -1 });
 
 reviewSchema.set('toJSON', {
   virtuals: true,

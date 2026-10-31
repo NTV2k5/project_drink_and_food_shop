@@ -1,4 +1,4 @@
-﻿/**
+/**
  * =============================================================================
  * TANG 1: UNIT TESTS (Source Tests)
  * Muc tieu: Kiem tra tung doan code nho nhat co loi logic hay khong.
@@ -78,18 +78,18 @@ describe('[TANG 1] Auth Controller - Unit Tests', () => {
       expect(next).not.toHaveBeenCalled();
     });
 
-    it('TC-U-004: Phai hash password voi bcrypt salt=12', async () => {
+    it('TC-U-004: Phai hash password voi bcrypt salt=10 (OWASP Standard)', async () => {
       const req = mockReq({ email: 'hash@test.com', password: 'PlainText123' });
       const res = mockRes();
       const next = mockNext();
       User.findOne.mockResolvedValue(null);
-      bcrypt.genSalt.mockResolvedValue('salt12');
+      bcrypt.genSalt.mockResolvedValue('salt10');
       bcrypt.hash.mockResolvedValue('hashed');
       User.create.mockResolvedValue({ id: 'uid' });
       jwt.sign.mockReturnValue('token');
       await register(req, res, next);
-      expect(bcrypt.genSalt).toHaveBeenCalledWith(12);
-      expect(bcrypt.hash).toHaveBeenCalledWith('PlainText123', 'salt12');
+      expect(bcrypt.genSalt).toHaveBeenCalledWith(10);
+      expect(bcrypt.hash).toHaveBeenCalledWith('PlainText123', 'salt10');
     });
   });
 

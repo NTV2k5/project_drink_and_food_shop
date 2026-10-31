@@ -106,6 +106,11 @@ const productSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  salesCount: {
+    type: Number,
+    default: 0,
+    index: true
+  },
   optionGroups: [productOptionGroupSchema],
   averageRating: {
     type: Number,
@@ -120,6 +125,14 @@ const productSchema = new mongoose.Schema({
 }, {
   timestamps: true
 });
+
+// Production indexes for high-concurrency read queries
+productSchema.index({ isAvailable: 1, sortOrder: 1 });
+productSchema.index({ categoryId: 1, isAvailable: 1 });
+productSchema.index({ isAvailable: 1, salesCount: -1 });
+productSchema.index({ basePrice: 1 });
+productSchema.index({ isFeatured: 1 });
+productSchema.index({ name: 'text', description: 'text' });
 
 productSchema.set('toJSON', {
   virtuals: true,

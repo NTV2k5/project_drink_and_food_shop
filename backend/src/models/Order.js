@@ -170,6 +170,12 @@ const orderSchema = new mongoose.Schema({
   timestamps: true
 });
 
+// Production indexes for high-concurrency order query pipelines
+orderSchema.index({ userId: 1, createdAt: -1 });
+orderSchema.index({ status: 1, createdAt: -1 });
+orderSchema.index({ paymentStatus: 1 });
+orderSchema.index({ createdAt: -1 });
+
 orderSchema.set('toJSON', {
   virtuals: true,
   versionKey: false,

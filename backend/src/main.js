@@ -69,8 +69,11 @@ io.on('connection', (socket) => {
   });
 });
 
-// 6. Lắng nghe yêu cầu kết nối
-server.listen(PORT, () => {
+// 5. Khởi động Background Order Worker xử lý hàng đợi bất đồng bộ
+require('./workers/order.worker');
+
+// 6. Lắng nghe yêu cầu kết nối với TCP SYN backlog mở rộng (2048) chống nghẽn kết nối
+server.listen(PORT, '0.0.0.0', 2048, () => {
   console.log(`API chạy tại: http://localhost:${PORT}/api/v1`);
   console.log(`Cổng thời gian thực WebSocket: ws://localhost:${PORT}`);
 });

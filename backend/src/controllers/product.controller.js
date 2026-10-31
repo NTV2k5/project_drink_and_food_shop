@@ -4,6 +4,7 @@ const Category = require('../models/Category');
 const Order = require('../models/Order');
 const Review = require('../models/Review');
 const { ApiError } = require('../middleware/errorHandler');
+const cacheService = require('../services/redis.service');
 
 // Lấy danh sách sản phẩm có phân trang, tìm kiếm, lọc
 const findAll = async (req, res, next) => {
@@ -93,43 +94,31 @@ const findAll = async (req, res, next) => {
   }
 };
 
-// Lấy sản phẩm bán chạy nhất
+// Lấy sản phẩm bán chạy nhất (Tối ưu hóa: Dùng Cache-Aside + salesCount index)
 const findBestsellers = async (req, res, next) => {
   try {
     const limit = parseInt(req.query.limit, 10) || 8;
+    const cacheKey = `products:bestsellers:${limit}`;
 
-    // Aggregate từ Order để tìm sản phẩm được đặt nhiều nhất
-    const popular = await Order.aggregate([
-      { $unwind: '$items' },
-      {
-        $group: {
-          _id: '$items.productId',
-          totalQty: { $sum: '$items.quantity' }
-        }
-      },
-      { $sort: { totalQty: -1 } },
-      { $limit: limit }
-    ]);
-
-    const popularIds = popular.map((p) => p._id);
-    
-    // Tìm chi tiết các sản phẩm này
-    let products = await Product.find({
-      _id: { $in: popularIds },
-      isAvailable: true
-    }).populate('categoryId', 'id name slug');
-
-    // Nếu không đủ số lượng bán chạy từ hóa đơn, bổ sung bằng sản phẩm nổi bật/mới
-    if (products.length < limit) {
-      const extraProducts = await Product.find({
-        _id: { $nin: popularIds },
-        isAvailable: true
-      })
-        .limit(limit - products.length)
+    const products = await cacheService.cacheAside(cacheKey, 900, async () => {
+      let items = await Product.find({ isAvailable: true })
+        .sort({ salesCount: -1, isFeatured: -1, sortOrder: 1 })
+        .limit(limit)
         .populate('categoryId', 'id name slug');
-      
-      products = [...products, ...extraProducts];
-    }
+
+      if (items.length < limit) {
+        const existingIds = items.map((p) => p._id);
+        const extraProducts = await Product.find({
+          _id: { $nin: existingIds },
+          isAvailable: true
+        })
+          .limit(limit - items.length)
+          .populate('categoryId', 'id name slug');
+
+        items = [...items, ...extraProducts];
+      }
+      return items;
+    });
 
     res.status(200).json(products);
   } catch (error) {

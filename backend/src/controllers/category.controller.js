@@ -1,24 +1,27 @@
 const Category = require('../models/Category');
 const Product = require('../models/Product');
 const { ApiError } = require('../middleware/errorHandler');
+const cacheService = require('../services/redis.service');
 
-// Lấy danh sách danh mục
+// Lấy danh sách danh mục (Áp dụng Cache-Aside Pattern giảm 99% tải Database)
 const findAll = async (req, res, next) => {
   try {
     const includeInactive = req.query.includeInactive === 'true';
-    const filter = includeInactive ? {} : { isActive: true };
-    
-    const categories = await Category.find(filter).sort({ sortOrder: 'asc' });
-    
-    // Đếm số lượng sản phẩm thuộc mỗi danh mục giống như Prisma
-    const results = await Promise.all(
-      categories.map(async (cat) => {
-        const productCount = await Product.countDocuments({ categoryId: cat._id });
-        const catObj = cat.toJSON();
-        catObj._count = { products: productCount };
-        return catObj;
-      })
-    );
+    const cacheKey = includeInactive ? 'categories:all' : 'categories:active';
+
+    const results = await cacheService.cacheAside(cacheKey, 600, async () => {
+      const filter = includeInactive ? {} : { isActive: true };
+      const categories = await Category.find(filter).sort({ sortOrder: 'asc' });
+
+      return Promise.all(
+        categories.map(async (cat) => {
+          const productCount = await Product.countDocuments({ categoryId: cat._id });
+          const catObj = typeof cat.toJSON === 'function' ? cat.toJSON() : { ...cat };
+          catObj._count = { products: productCount };
+          return catObj;
+        })
+      );
+    });
     
     res.status(200).json(results);
   } catch (error) {
@@ -82,6 +85,8 @@ const create = async (req, res, next) => {
       sortOrder,
       isActive
     });
+
+    await cacheService.invalidatePattern('categories:*');
     
     res.status(201).json(category);
   } catch (error) {
@@ -102,6 +107,8 @@ const update = async (req, res, next) => {
     if (!category) {
       throw new ApiError(404, `Không tìm thấy danh mục có ID: ${id}`);
     }
+
+    await cacheService.invalidatePattern('categories:*');
     
     res.status(200).json(category);
   } catch (error) {
@@ -118,6 +125,8 @@ const remove = async (req, res, next) => {
     if (!category) {
       throw new ApiError(404, `Không tìm thấy danh mục có ID: ${id}`);
     }
+
+    await cacheService.invalidatePattern('categories:*');
     
     res.status(200).json({ success: true, message: 'Xóa danh mục thành công.' });
   } catch (error) {

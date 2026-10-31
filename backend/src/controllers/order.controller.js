@@ -7,6 +7,8 @@ const Review = require('../models/Review');
 const CartItem = require('../models/CartItem');
 const { ApiError } = require('../middleware/errorHandler');
 const { geocodeAddress } = require('../services/geocoding');
+const { generateOrderNumber } = require('../utils/idGenerator');
+const orderQueue = require('../queues/order.queue');
 
 // Hàm sinh QR Code VietQR để thanh toán ngân hàng tự động qua SePay
 const generateSePayPayment = (order) => {
@@ -151,28 +153,17 @@ const createOrder = async (req, res, next) => {
 
     // Tổng tiền thanh toán (Không được âm)
     const totalAmount = Math.max(0, subtotal + Number(shippingFee) - discountAmount - pointsDiscount);
-    const orderNumber = `DH${Date.now().toString().slice(-8)}`;
+    // Sinh mã đơn hàng chuẩn ULID / Collision-Free ngăn chặn hoàn toàn va chạm mã đơn dưới tải cao
+    const orderNumber = generateOrderNumber();
     
     // Đơn COD được chuyển xác nhận ngay, đơn SEPAY chuyển Chờ thanh toán
     const initialStatus = paymentMethod === 'COD' ? 'CONFIRMED' : 'PENDING_PAYMENT';
 
-    // Tự động định vị từ địa chỉ của khách hàng nếu dùng tọa độ mẫu hoặc trống
+    // Sử dụng tọa độ giao hàng (Mặc định hoặc từ client)
     let finalLat = deliveryAddress.lat || 10.762622;
     let finalLng = deliveryAddress.lng || 106.660172;
 
-    if (finalLat === 10.762622 && finalLng === 106.660172) {
-      console.log(`[GEOCODING ORDER] Đang định vị địa chỉ giao hàng: "${deliveryAddress.fullAddress}"...`);
-      const coords = await geocodeAddress(deliveryAddress.fullAddress);
-      if (coords) {
-        finalLat = coords.lat;
-        finalLng = coords.lng;
-        console.log(`[GEOCODING ORDER] Định vị thành công: lat=${finalLat}, lng=${finalLng}`);
-      } else {
-        console.warn(`[GEOCODING ORDER] Định vị thất bại, dùng tọa độ mặc định.`);
-      }
-    }
-
-    // Tạo Order
+    // Tạo Order ngay lập tức không bị nghẽn bởi I/O mạng ngoại vi
     const order = await Order.create({
       orderNumber,
       userId: user._id,
@@ -219,6 +210,34 @@ const createOrder = async (req, res, next) => {
     // Dọn sạch giỏ hàng của user sau khi đặt hàng
     await CartItem.deleteMany({ userId: user._id });
 
+    // Cập nhật số lượt bán (salesCount) bất đồng bộ cho danh mục món bán chạy
+    orderItems.forEach(async (item) => {
+      try {
+        await Product.findByIdAndUpdate(item.productId, { $inc: { salesCount: item.quantity } });
+      } catch (err) {
+        // Silent update failure
+      }
+    });
+
+    // Xử lý Geocoding nền bất đồng bộ (Non-blocking background geocoding) nếu chưa có tọa độ chính xác
+    if (finalLat === 10.762622 && finalLng === 106.660172 && deliveryAddress.fullAddress) {
+      setImmediate(async () => {
+        try {
+          const coords = await geocodeAddress(deliveryAddress.fullAddress);
+          if (coords) {
+            await Order.findByIdAndUpdate(order._id, {
+              'deliveryAddress.lat': coords.lat,
+              'deliveryAddress.lng': coords.lng,
+              deliveryLat: coords.lat,
+              deliveryLng: coords.lng
+            });
+          }
+        } catch (geoErr) {
+          // Keep default fallback gracefully
+        }
+      });
+    }
+
     // Lấy thông tin đầy đủ để phản hồi
     const populatedOrder = await Order.findById(order._id)
       .populate('userId', 'id fullName email phone')
@@ -260,7 +279,8 @@ const handleSePayWebhook = async (req, res, next) => {
     
     // Tìm mã hóa đơn dạng DH12345678 trong nội dung chuyển khoản (kiểm tra code, content và description)
     const contentToSearch = `${data.code || ''} ${data.content || ''} ${data.description || ''}`;
-    const transactionCode = contentToSearch.match(/DH\d{8}/)?.[0];
+    // Hỗ trợ cả mã cũ (DH12345678) và mã ULID mới (DHM1ABC...)
+    const transactionCode = contentToSearch.match(/DH[A-Z0-9]{6,26}/i)?.[0];
     if (!transactionCode) {
       console.warn(`[SEPAY WEBHOOK] Không tìm thấy mã đơn hàng DHxxx trong dữ liệu CK: "${contentToSearch}"`);
       return res.status(200).json({ success: false, message: 'Không tìm thấy mã đơn hàng.' });
@@ -722,8 +742,32 @@ const getRevenueAnalytics = async (req, res, next) => {
   }
 };
 
+// Tạo đơn hàng bất đồng bộ qua Hàng đợi (Dành cho Flash Sale & C10K Concurrency)
+const createOrderAsync = async (req, res, next) => {
+  try {
+    const orderNumber = generateOrderNumber();
+    const queuedJob = await orderQueue.addOrderJob({
+      ...req.body,
+      orderNumber,
+      userId: req.user.id
+    });
+
+    res.status(202).json({
+      success: true,
+      message: 'Đơn hàng đã được đưa vào hàng đợi xử lý tốc độ cao.',
+      jobId: queuedJob.jobId,
+      orderNumber,
+      mode: queuedJob.mode,
+      status: 'QUEUED'
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 module.exports = {
   createOrder,
+  createOrderAsync,
   handleSePayWebhook,
   getAdminOrders,
   updateOrderStatus,

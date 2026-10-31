@@ -39,8 +39,8 @@ const register = async (req, res, next) => {
       throw new ApiError(400, 'Tài khoản Email hoặc Số điện thoại đã tồn tại.');
     }
 
-    // Mã hóa mật khẩu
-    const salt = await bcrypt.genSalt(12);
+    // Mã hóa mật khẩu (OWASP Standard work factor 10, cân bằng bảo mật và giải phóng CPU threadpool)
+    const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
     // Tạo người dùng mới

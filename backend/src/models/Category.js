@@ -32,6 +32,8 @@ const categorySchema = new mongoose.Schema({
   timestamps: true
 });
 
+categorySchema.index({ isActive: 1, sortOrder: 1 });
+
 categorySchema.set('toJSON', {
   virtuals: true,
   versionKey: false,
